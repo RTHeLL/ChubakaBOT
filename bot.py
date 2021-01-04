@@ -13,18 +13,18 @@ def main():
     config = load_config()
 
     vk = VK_LongPoll(
-        config['GROUP_TOKEN'],
-        config['GROUP_ID']
+        config['group_token'],
+        config['group_id']
     )
 
     sql = MySQL(
-        config['SQL_HOST'],
-        config['SQL_USER'],
-        config['SQL_PASS'],
-        config['SQL_DB']
+        config['sql_host'],
+        config['sql_user'],
+        config['sql_pass'],
+        config['sql_db']
     )
 
-    all_tests = sql.ex('SELECT * FROM rus;')
+    all_tests = sql.ex('SELECT * FROM users;')
 
     task = Tasks(vk, sql)
     us = User(vk, sql)
@@ -84,7 +84,7 @@ def main():
 
             else:
                 if user[2] > 0:
-                    task.convertAns(body, user_id, user)
+                    task.convert_ans(body, user_id, user)
                 else:
                     pass
 
@@ -108,7 +108,7 @@ def load_config():
     values = dict()
 
     conf = configparser.ConfigParser()
-    conf.read('config.ini')
+    conf.read('data/config.ini')
 
     for section_name in conf.sections():
         for name, value in conf.items(section_name):
