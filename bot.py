@@ -1,35 +1,30 @@
-import sys
 import random
 import configparser
 
-sys.path.append('libs/')
-sys.path.append('data/')
-sys.path.append('classes/')
-
-from VK_ import VK_LongPoll
-from mysql import MySQL
-from tasks import Tasks
-from user import User
+from libs.VK_ import VK_LongPoll
+from libs.mysql import MySQL
+from classes.tasks import Tasks
+from classes.user import User
 
 CONFIG = dict()
 
 
 def main():
-    CONFIG = loadConfig()
+    config = load_config()
 
     vk = VK_LongPoll(
-        CONFIG['vk_group_token'],
-        CONFIG['vk_group_id']
+        config['GROUP_TOKEN'],
+        config['GROUP_ID']
     )
 
     sql = MySQL(
-        CONFIG['sql_host'],
-        CONFIG['sql_user'],
-        CONFIG['sql_pass'],
-        CONFIG['sql_db']
+        config['SQL_HOST'],
+        config['SQL_USER'],
+        config['SQL_PASS'],
+        config['SQL_DB']
     )
 
-    ALL_TESTS = sql.ex('SELECT * FROM rus;')
+    all_tests = sql.ex('SELECT * FROM rus;')
 
     task = Tasks(vk, sql)
     us = User(vk, sql)
@@ -47,7 +42,8 @@ def main():
             if not user:
                 user = us.create(user_id)
                 vk.sendMessage(user_id,
-                               'Привет, %s! Я тебя долго ждал.\n\nДля того что бы разобраться в моих командах, отправь мне слово *id0(помощь).' %
+                               'Привет, %s! Я тебя долго ждал.\n\nДля того что бы разобраться в моих командах, '
+                               'отправь мне слово *id0(помощь).' %
                                user[1])
                 continue
 
@@ -56,7 +52,7 @@ def main():
                 if user[2] > 0:
                     vk.sendMessage(user_id, 'Завершите предыдущее задание!')
                 else:
-                    task.show(user_id, random.randint(1, ALL_TESTS), 0)
+                    task.show(user_id, random.randint(1, all_tests), 0)
 
                 continue
 
@@ -64,7 +60,7 @@ def main():
                 if user[2] > 0:
                     vk.sendMessage(user_id, 'Завершите предыдущее задание!')
                 else:
-                    task_id = 81;
+                    task_id = 81
                     task.show(user_id, task_id, 2)
 
                 continue
@@ -72,7 +68,8 @@ def main():
             elif body.lower() == 'стоп':
                 if user[8] == 2:
                     sql.ex(
-                        'UPDATE users SET tmp_test = 0, tmp_type = \'\', tmp_cor = 0, mode = 0, mode_true = \'\', mode_false = \'\', mode_score = 0 WHERE user_id = %d;' % user_id)
+                        'UPDATE users SET tmp_test = 0, tmp_type = \'\', tmp_cor = 0, mode = 0, mode_true = \'\', '
+                        'mode_false = \'\', mode_score = 0 WHERE user_id = %d;' % user_id)
                     vk.sendMessage(user_id, 'Вы вышли из режима РТ.')
 
                 continue
@@ -91,7 +88,6 @@ def main():
                 else:
                     pass
 
-
         elif event['type'] == 'message_reply':
             if 'from_id' in event['object']:
                 print('REPLY from %d: %s' % (event['object']['from_id'], event['object']['body']))
@@ -108,17 +104,17 @@ def main():
             print(event)
 
 
-def loadConfig(filename='config.ini'):
-    VALS = dict()
+def load_config():
+    values = dict()
 
     conf = configparser.ConfigParser()
     conf.read('config.ini')
 
     for section_name in conf.sections():
         for name, value in conf.items(section_name):
-            VALS[name] = value
+            values[name] = value
 
-    return VALS
+    return values
 
 
 if __name__ == '__main__':
