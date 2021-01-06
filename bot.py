@@ -1,121 +1,49 @@
+import logging
+import os
 import random
-import configparser
+from typing import Optional
 
-from libs.VK_ import VK_LongPoll
-from libs.mysql import MySQL
-from classes.tasks import Tasks
-from classes.user import User
+from vkbottle import GroupEventType, GroupTypes, Keyboard, Text, VKAPIError
+from vkbottle.bot import Bot, Message
 
-CONFIG = dict()
+bot = Bot(os.environ["token"])
+logging.basicConfig(level=logging.INFO)
 
-
-def main():
-    config = load_config()
-
-    vk = VK_LongPoll(
-        config['group_token'],
-        config['group_id']
-    )
-
-    sql = MySQL(
-        config['sql_host'],
-        config['sql_user'],
-        config['sql_pass'],
-        config['sql_db']
-    )
-
-    all_tests = sql.ex('SELECT * FROM users;')
-
-    task = Tasks(vk, sql)
-    us = User(vk, sql)
-
-    for event in vk.listen():
-        if event['type'] == 'message_new':
-
-            user_id = int(event['object']['user_id'])
-            body = event['object']['body']
-
-            print('%d: %s' % (user_id, body))
-
-            user = us.get(user_id)
-
-            if not user:
-                user = us.create(user_id)
-                vk.sendMessage(user_id,
-                               'Привет, %s! Я тебя долго ждал.\n\nДля того что бы разобраться в моих командах, '
-                               'отправь мне слово *id0(помощь).' %
-                               user[1])
-                continue
-
-            if body.lower() == 'рус':
-
-                if user[2] > 0:
-                    vk.sendMessage(user_id, 'Завершите предыдущее задание!')
-                else:
-                    task.show(user_id, random.randint(1, all_tests), 0)
-
-                continue
-
-            elif body.lower() == 'рт':
-                if user[2] > 0:
-                    vk.sendMessage(user_id, 'Завершите предыдущее задание!')
-                else:
-                    task_id = 81
-                    task.show(user_id, task_id, 2)
-
-                continue
-
-            elif body.lower() == 'стоп':
-                if user[8] == 2:
-                    sql.ex(
-                        'UPDATE users SET tmp_test = 0, tmp_type = \'\', tmp_cor = 0, mode = 0, mode_true = \'\', '
-                        'mode_false = \'\', mode_score = 0 WHERE user_id = %d;' % user_id)
-                    vk.sendMessage(user_id, 'Вы вышли из режима РТ.')
-
-                continue
-
-            elif body.lower() == 'я':
-                us.me(user_id, user)
-                continue
-
-            elif body.lower() == 'топ':
-                us.top(user_id)
-                continue
-
-            else:
-                if user[2] > 0:
-                    task.convert_ans(body, user_id, user)
-                else:
-                    pass
-
-        elif event['type'] == 'message_reply':
-            if 'from_id' in event['object']:
-                print('REPLY from %d: %s' % (event['object']['from_id'], event['object']['body']))
-            else:
-                print('REPLY from BOT')
-
-        elif event['type'] == 'group_join':
-            pass
-
-        elif event['type'] == 'group_leave':
-            pass
-
-        else:
-            print(event)
+KEYBOARD = Keyboard(one_time=True).add(Text("Съесть еще", {"cmd": "eat"})).get_json()
+EATABLE = ["мороженое", "штаны", "пальто"]
 
 
-def load_config():
-    values = dict()
-
-    conf = configparser.ConfigParser()
-    conf.read('data/config.ini')
-
-    for section_name in conf.sections():
-        for name, value in conf.items(section_name):
-            values[name] = value
-
-    return values
+# If you need to make handler respond for 2 different rule set you can
+# use double decorator like here it is or use filters (OrFilter here)
+@bot.on.message(text=["/съесть <item>", "/съесть"])
+@bot.on.message(payload={"cmd": "eat"})
+async def eat_handler(message: Message, item: Optional[str] = None):
+    if item is None:
+        item = random.choice(EATABLE)
+    await message.answer(f"Ты съел <<{item}>>!", keyboard=KEYBOARD)
 
 
-if __name__ == '__main__':
-    main()
+# You can use raw_event to handle any event type, the advantage is
+# free dataclass, for example it can be dict if you have some problems
+# with module types quality
+@bot.on.raw_event(GroupEventType.GROUP_JOIN, dataclass=GroupTypes.GroupJoin)
+async def group_join_handler(event: GroupTypes.GroupJoin):
+    try:
+
+        # Basic API call, please notice that bot.api (or blueprint.api) is
+        # not accessible in case multibot is used, API can be accessed from
+        # event.ctx_api
+        await bot.api.messages.send(
+            peer_id=event.object.user_id, message="Спасибо за подписку!", random_id=0
+        )
+
+    # Read more about exception handling in documentation
+    # low-level/exception_factory/exception_factory
+    except VKAPIError(901):
+        pass
+
+
+# Runs loop > loop.run_forever() > with tasks created in loop_wrapper before,
+# read the loop wrapper documentation to comprehend this > tools/loop-wrapper.
+# The main polling task for bot is bot.run_polling()
+bot.run_forever()
