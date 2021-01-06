@@ -1,17 +1,29 @@
 import logging
-import os
 import random
+import configparser
+import classes.mysql
 from typing import Optional
 
 from vkbottle import GroupEventType, GroupTypes, Keyboard, Text, VKAPIError
 from vkbottle.bot import Bot, Message
 
-bot = Bot(os.environ["token"])
+mysql = classes.mysql.MySQL()
+config = configparser.ConfigParser()
+config.read("data/vk_config.ini")
+
+
+# VK Connection
+bot = Bot(config["VK_DATA"]["GROUP_TOKEN"])
+
 logging.basicConfig(level=logging.INFO)
 
 KEYBOARD = Keyboard(one_time=True).add(Text("Съесть еще", {"cmd": "eat"})).get_json()
 EATABLE = ["мороженое", "штаны", "пальто"]
 
+# Bot commands
+@bot.on.message(text=["Начать", "Старт", "Помощь"])
+async def start_handler(message: Message):
+    mysql.get_user(message.from_id)
 
 # If you need to make handler respond for 2 different rule set you can
 # use double decorator like here it is or use filters (OrFilter here)
