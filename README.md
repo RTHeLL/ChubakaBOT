@@ -6,7 +6,7 @@ Since I want to develop as a Python developer, I decided to completely rewrite i
 This project will be open source code.
 
 # My contact:
-# Telegram - @kinderplayer
-# E-Mail - k1ndermail@ya.ru
+Telegram - @kinderplayer
+E-Mail - k1ndermail@ya.ru
 
 P.S. Sorry for my bad english...
