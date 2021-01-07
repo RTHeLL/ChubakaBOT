@@ -7,6 +7,8 @@ This project will be open source code.
 
 # My contact:
 Telegram - @kinderplayer
+
 E-Mail - k1ndermail@ya.ru
+
 
 P.S. Sorry for my bad english...
