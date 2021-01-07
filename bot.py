@@ -1,9 +1,10 @@
 import configparser
 import logging
-# import random
+import random
 from typing import Optional, Any, List
 
-from vkbottle import GroupEventType, GroupTypes, Keyboard, KeyboardButtonColor, Text, VKAPIError, ABCHandler, ABCView, BaseMiddleware, \
+from vkbottle import GroupEventType, GroupTypes, Keyboard, VKAPIError, ABCHandler, ABCView, \
+    BaseMiddleware, Callback, \
     CtxStorage
 from vkbottle.bot import Bot, Message
 from vkbottle_types.objects import UsersUserXtrCounters
@@ -23,7 +24,9 @@ bot = Bot(config["VK_DATA"]["GROUP_TOKEN"])
 
 logging.basicConfig(level=logging.INFO)
 
-START_KEYBOARD = Keyboard(one_time=True).add(Text("❓ Помощь", {"cmd": "cmd_help"}), KeyboardButtonColor.POSITIVE).get_json()
+START_KEYBOARD = (
+    Keyboard(one_time=False).add(Callback("❓ Помощь", payload={"cmd": "cmd_help"})).get_json()
+)
 MAIN_KEYBOARD = Keyboard(one_time=False).schema(
     [
         [{"label": "Профиль", "type": "text", "color": "positive"}],
@@ -74,11 +77,12 @@ async def start_handler(message: Message, info: UsersUserXtrCounters):
         await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: {info.first_name}\nВаш игровой ID: \
 {mysql.check_user(message.from_id)[0]}")
     else:
-        await message.answer(f"@id{message.from_id} ({info.first_name}), Ваш профиль:\n🔎 ID: {mysql.check_user(message.from_id)[0]}\n💰 Денег: {mysql.check_user(message.from_id)[2]}")
+        await message.answer(f"Вы уже зарегистрированы в боте!\nИспользуйте команду \"Помощь\", для получения списка "
+                             f"команд")
 
 
 @bot.on.message(text=["Помощь", "помощь"])
-@bot.on.message(payload={"cmd": "cmd_start"})
+@bot.on.message(payload={"cmd": "cmd_help"})
 async def help_handler(message: Message, info: UsersUserXtrCounters):
     if not mysql.check_user(message.from_id):
         await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
@@ -103,14 +107,89 @@ async def help_handler(message: Message, info: UsersUserXtrCounters):
 
 @bot.on.message(text=["Профиль", "профиль"])
 @bot.on.message(payload={"cmd": "cmd_profile"})
-async def start_handler(message: Message, info: UsersUserXtrCounters):
+async def profile_handler(message: Message, info: UsersUserXtrCounters):
     if not mysql.check_user(message.from_id):
         await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
         mysql.create_user(message.from_id)
         await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: {info.first_name}\nВаш игровой ID: \
 {mysql.check_user(message.from_id)[0]}")
     else:
-        await message.answer(f"@id{message.from_id} ({info.first_name}), Ваш профиль:\n🔎 ID: {mysql.check_user(message.from_id)[0]}\n💰 Денег: {mysql.check_user(message.from_id)[2]}")
+        user = mysql.check_user(message.from_id)
+
+        temp_message = f'@id{message.from_id} ({info.first_name}), Ваш профиль:\n'
+        temp_message += f'🔎 ID: {user[0]["ID"]}\n'
+        # Check rank
+        if user[0]["Rank"] == 2:
+            temp_message += f'🔥 VIP игрок\n'
+        elif user[0]["Rank"] == 3:
+            temp_message += f'🔮 Premium игрок\n'
+        elif user[0]["Rank"] == 4:
+            temp_message += f'🌀 Модератор\n'
+        elif user[0]["Rank"] >= 5:
+            temp_message += f'👑 Администратор\n'
+        # Basic check
+        if user[0]["EXP"] > 0:
+            temp_message += f'⭐ Опыта: {user[0]["EXP"]}\n'
+        if user[0]["Money"] > 0:
+            temp_message += f'💰 Денег: {user[0]["Money"]}\n'
+        if user[0]["BTC"] > 0:
+            temp_message += f'🌐 Биткоинов: {user[0]["BTC"]}\n'
+        if user[0]["Rating"] > 0:
+            temp_message += f'👑 Рейтинг: {user[0]["Rating"]}\n'
+
+        temp_message += f'📗 Дата регистрации: {user[0]["Register_Data"].strftime("%d.%m.%Y, %H:%M:%S")}\n'
+        await message.answer(temp_message)
+
+
+@bot.on.message(text=["Банк <item1> <item2>", "банк <item1> <item2>"])
+@bot.on.message(payload={"cmd": "cmd_bank"})
+async def bank_handler(message: Message, info: UsersUserXtrCounters, item1: Optional[str] = None,
+                       item2: Optional[int] = None):
+    if not mysql.check_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        mysql.create_user(message.from_id)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: {info.first_name}\nВаш игровой ID: \
+{mysql.check_user(message.from_id)[0]}")
+    else:
+        user = mysql.check_user(message.from_id)
+        print(1)
+        if item1 is None and item2 is None:
+            print(1)
+            await message.answer(
+                f'@id{message.from_id} ({info.first_name}), на Вашем банковском счете: {user[0]["Bank_Money"]}')
+        elif item1 == "положить":
+            if item2 is None:
+                await message.answer(f'@id{message.from_id} ({info.first_name}), используйте "банк "положить" "сумма", '
+                                     f'чтобы положить деньги на счет"')
+            else:
+                user[0]["Bank_Money"] += int(item2)
+                user[0]["Money"] -= int(item2)
+                mysql.update_user(message.from_id, user)
+                await message.answer(
+                    f'@id{message.from_id} ({info.first_name}), Вы пополнили свой банковский счет на {item2}$')
+
+
+@bot.on.message(text=["Выбери <item1> <item2>", "выбери <item1> <item2>"])
+@bot.on.message(payload={"cmd": "cmd_selecttext"})
+async def selecttext_handler(message: Message, info: UsersUserXtrCounters, item1: Optional[str] = None,
+                             item2: Optional[str] = None):
+    if not mysql.check_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        mysql.create_user(message.from_id)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: {info.first_name}\nВаш игровой ID: \
+{mysql.check_user(message.from_id)[0]}")
+    else:
+        if item1 is None or item2 is None:
+            await message.answer(f"Используйте: выбери \"фраза 1\" \"фраза 2\"")
+        else:
+            temp_var = random.randint(0, 1)
+            if temp_var == 0:
+                await message.answer(
+                    f"@id{message.from_id} ({info.first_name}), мне кажется лучше \"{item1}\", чем \"{item2}\"")
+            elif temp_var == 1:
+                await message.answer(
+                    f"@id{message.from_id} ({info.first_name}), мне кажется лучше \"{item2}\", чем \"{item1}\"")
+
 
 # If you need to make handler respond for 2 different rule set you can
 # use double decorator like here it is or use filters (OrFilter here)
