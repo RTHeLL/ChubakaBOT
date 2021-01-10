@@ -72,3 +72,42 @@ class MainData(MySQL):
                 return False
             else:
                 return result
+
+    def add_static_property(self, table, **kwargs):
+        with self.connection.cursor() as cursor:
+            args_list = list(kwargs.keys())
+            sql = f"INSERT INTO %s (%s, %s) VALUES ('%s', %s)"
+            cursor.execute(sql % (table, args_list[0], args_list[1], kwargs[args_list[0]], kwargs[args_list[1]]))
+            logging.debug(f'New property "{kwargs[args_list[0]]} - {kwargs[args_list[1]]}$" added!')
+        self.connection.commit()
+
+    def add_business(self, **kwargs):
+        with self.connection.cursor() as cursor:
+            args_list = list(kwargs.keys())
+            sql = f"INSERT INTO `businesses` (%s, %s, %s) VALUES ('%s', %s, %s)"
+            cursor.execute(sql % (args_list[0], args_list[1], args_list[2], kwargs[args_list[0]], kwargs[args_list[1]],
+                                  kwargs[args_list[2]]))
+            logging.debug(f'New business "{kwargs[args_list[0]]} - price: {kwargs[args_list[1]]}$, workers: '
+                          f'{kwargs[args_list[2]]}" added!')
+        self.connection.commit()
+
+    def add_pet(self, **kwargs):
+        with self.connection.cursor() as cursor:
+            args_list = list(kwargs.keys())
+            sql = f"INSERT INTO `pets` (%s, %s, %s, %s, %s) VALUES ('%s', %s, %s, %s, '%s')"
+            cursor.execute(sql % (args_list[0], args_list[1], args_list[2], args_list[3], args_list[4],
+                                  kwargs[args_list[0]], kwargs[args_list[1]], kwargs[args_list[2]],
+                                  kwargs[args_list[3]], kwargs[args_list[4]]))
+            logging.debug(f'New pet "{kwargs[args_list[0]]} - price: {kwargs[args_list[1]]}$, min: '
+                          f'{kwargs[args_list[2]]}, max: {kwargs[args_list[3]]}, icon: {kwargs[args_list[4]]}" added!')
+        self.connection.commit()
+
+    def add_farm(self, **kwargs):
+        with self.connection.cursor() as cursor:
+            args_list = list(kwargs.keys())
+            sql = f"INSERT INTO `farms` (%s, %s, %s) VALUES ('%s', %s, %s)"
+            cursor.execute(sql % (args_list[0], args_list[1], args_list[2], kwargs[args_list[0]], kwargs[args_list[1]],
+                                  kwargs[args_list[2]]))
+            logging.debug(f'New farm "{kwargs[args_list[0]]} - price: {kwargs[args_list[1]]}$, btc per hour: '
+                          f'{kwargs[args_list[2]]}" added!')
+        self.connection.commit()
