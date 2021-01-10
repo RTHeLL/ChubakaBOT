@@ -1,4 +1,4 @@
-# ChubakaBOT v0.2
+# ChubakaBOT v0.3
 Hello, my friend. This my first large project on Python.
 I'm wanna make reborn my RolePlay BOT in VK (vk.com/chubakabot).
 In current time bot written on NodeJS :(
