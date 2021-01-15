@@ -4,7 +4,7 @@ from pymysql import MySQLError
 import configparser
 
 config = configparser.ConfigParser()
-config.read("data/mysql_config.ini")
+config.read("config/mysql.ini")
 
 
 class MySQL:
@@ -19,11 +19,11 @@ class MySQL:
 
 class UserAction(MySQL):
     # Function creating user
-    def create_user(self, vk_id):
+    def create_user(self, vk_id, name):
         with self.connection.cursor() as cursor:
             for table in config.items("USERS_TABLES"):
-                sql = f"INSERT INTO %s (VK_ID) VALUES (%s)"
-                cursor.execute(sql % (table[0], vk_id))
+                sql = f"INSERT INTO %s (VK_ID, %s) VALUES (%s, %s)"
+                cursor.execute(sql % (table[0], config["USERS_COLUMNS"]["NAME"], vk_id, name))
         self.connection.commit()
 
     # Function getting user
@@ -35,7 +35,7 @@ class UserAction(MySQL):
             sql = "SELECT * FROM %s WHERE `VK_ID`=%s"
             cursor.execute(sql % (config["USERS_TABLES"]["USERS_PROPERTY"], vk_id))
             result += cursor.fetchall()
-            if cursor.fetchall() == "None":
+            if len(result) == 0:
                 return False
             else:
                 return result
@@ -43,18 +43,26 @@ class UserAction(MySQL):
     # Function updating user
     def save_user(self, vk_id, user):
         with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
-            for row, column in user[0].items():
-                sql = "UPDATE %s SET %s=%s WHERE `VK_ID`=%s"
-                if row == "ID" or row == "VK_ID" or row == "Register_Data":
-                    continue
-                else:
-                    cursor.execute(sql % (config["USERS_TABLES"]["USERS"], row, column, vk_id))
-            for row, column in user[1].items():
-                sql = "UPDATE %s SET %s=%s WHERE `VK_ID`=%s"
-                if row == "ID" or row == "VK_ID":
-                    continue
-                else:
-                    cursor.execute(sql % (config["USERS_TABLES"]["USERS_PROPERTY"], row, column, vk_id))
+            if len(user) == 1:
+                for row, column in user[0].items():
+                    sql = "UPDATE %s SET %s='%s' WHERE `VK_ID`=%s"
+                    if row == "ID" or row == "VK_ID" or row == "Register_Data":
+                        continue
+                    else:
+                        cursor.execute(sql % (config["USERS_TABLES"]["USERS"], row, column, vk_id))
+            else:
+                for row, column in user[0].items():
+                    sql = "UPDATE %s SET %s='%s' WHERE `VK_ID`=%s"
+                    if row == "ID" or row == "VK_ID" or row == "Register_Data":
+                        continue
+                    else:
+                        cursor.execute(sql % (config["USERS_TABLES"]["USERS"], row, column, vk_id))
+                for row, column in user[1].items():
+                    sql = "UPDATE %s SET %s=%s WHERE `VK_ID`=%s"
+                    if row == "ID" or row == "VK_ID":
+                        continue
+                    else:
+                        cursor.execute(sql % (config["USERS_TABLES"]["USERS_PROPERTY"], row, column, vk_id))
         self.connection.commit()
 
     # Function getting user property
@@ -63,7 +71,18 @@ class UserAction(MySQL):
             sql = "SELECT * FROM %s WHERE `VK_ID`=%s"
             cursor.execute(sql % (config["USERS_TABLES"]["USERS_PROPERTY"], vk_id))
             result = cursor.fetchall()
-            if cursor.fetchall() == "None":
+            if len(result) == 0:
+                return False
+            else:
+                return result
+
+    # Function checking user in DB
+    def get_user_by_gameid(self, game_id):
+        with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            sql = "SELECT * FROM %s WHERE `ID`=%s"
+            cursor.execute(sql % (config["USERS_TABLES"]["USERS"], game_id))
+            result = cursor.fetchall()
+            if len(result) == 0:
                 return False
             else:
                 return result
@@ -76,7 +95,7 @@ class MainData(MySQL):
             sql = "SELECT * FROM %s"
             cursor.execute(sql % table)
             result = cursor.fetchall()
-            if cursor.fetchall() == "None":
+            if len(result) == 0:
                 return False
             else:
                 return result
@@ -88,7 +107,7 @@ class MainData(MySQL):
                 sql = "SELECT * FROM %s"
                 cursor.execute(sql % table[0])
                 result.append(cursor.fetchall())
-            if cursor.fetchall() == "None":
+            if len(result) == 0:
                 return False
             else:
                 return result
