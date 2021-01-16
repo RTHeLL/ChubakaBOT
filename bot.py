@@ -52,15 +52,47 @@ MAIN_KEYBOARD = Keyboard(one_time=False, inline=False).schema(
             {"label": "💰 Банк", "type": "text", "payload": {"cmd": "cmd_bank"}, "color": "secondary"}
         ],
         [
-            {"label": "🏆 Топ", "type": "text", "color": "secondary"},
-            {"label": "🤝 Передать", "type": "text", "payload": {"cmd": "cmd_transfer"}, "color": "secondary"}
-        ],
-        [
             {"label": "❓ Помощь", "type": "text", "payload": {"cmd": "cmd_help"}, "color": "secondary"},
-            {"label": "💡 Разное", "type": "text", "color": "secondary"}
+            {"label": "💡 Разное", "type": "text", "payload": {"cmd": "cmd_other"}, "color": "secondary"}
         ],
         [
             {"label": "🎁 Получить бонус", "type": "text", "payload": {"cmd": "cmd_bonus"}, "color": "positive"}
+        ]
+    ]
+).get_json()
+
+OTHER_KEYBOARD = Keyboard(one_time=False, inline=False).schema(
+    [
+        [
+            {"label": "🚀 Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "primary"},
+            {"label": "🖨 Реши", "type": "text", "payload": {"cmd": "cmd_equation"}, "color": "secondary"},
+            {"label": "📊 Курс", "type": "text", "payload": {"cmd": "cmd_course"}, "color": "secondary"}
+        ],
+        [
+            {"label": "🏆 Топ", "type": "text", "payload": {"cmd": "cmd_top"}, "color": "secondary"},
+            {"label": "🤝 Передать", "type": "text", "payload": {"cmd": "cmd_transfer"}, "color": "secondary"}
+        ],
+        [
+            {"label": "⚙ Настройки", "type": "text", "payload": {"cmd": "cmd_settings"}, "color": "secondary"},
+            {"label": "◀ В главное меню", "type": "text", "payload": {"cmd": "cmd_mainmenu"}, "color": "positive"}
+        ]
+    ]
+).get_json()
+
+GAMES_KEYBOARD = Keyboard(one_time=False, inline=False).schema(
+    [
+        [
+            {"label": "🔫 Рулетка", "type": "text", "payload": {"cmd": "games_roulette"}, "color": "primary"},
+            {"label": "🎲 Кубик", "type": "text", "payload": {"cmd": "games_cube"}, "color": "secondary"},
+            {"label": "🎰 Казино", "type": "text", "payload": {"cmd": "games_casino"}, "color": "secondary"}
+        ],
+        [
+            {"label": "📈 Трейд", "type": "text", "payload": {"cmd": "games_trade"}, "color": "secondary"},
+            {"label": "🥛 Стаканчик", "type": "text", "payload": {"cmd": "games_glass"}, "color": "secondary"},
+            {"label": "🦅 Монетка", "type": "text", "payload": {"cmd": "games_coin"}, "color": "secondary"}
+        ],
+        [
+            {"label": "◀ В главное меню", "type": "text", "payload": {"cmd": "cmd_mainmenu"}, "color": "positive"}
         ]
     ]
 ).get_json()
@@ -622,7 +654,6 @@ async def transfer_handler(message: Message, info: UsersUserXtrCounters, gameid:
                                      user_id=transfer_user[0]["VK_ID"])
 
 
-# Other commands
 @bot.on.message(text=["Выбери <item1> <item2>", "выбери <item1> <item2>"])
 @bot.on.message(payload={"cmd": "cmd_selecttext"})
 async def selecttext_handler(message: Message, info: UsersUserXtrCounters, item1: Optional[str] = None,
@@ -687,8 +718,8 @@ async def infa_handler(message: Message, info: UsersUserXtrCounters, item: Optio
     if not UserAction.get_user(message.from_id):
         await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
         UserAction.create_user(message.from_id, info.first_name)
-        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: {info.first_name}\nВаш игровой ID: \
-{UserAction.get_user(message.from_id)[0]['ID']}")
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
     else:
         if item is None:
             await message.answer(f"@id{message.from_id} ({info.first_name}), Используйте: инфа \"текст\"")
@@ -696,6 +727,41 @@ async def infa_handler(message: Message, info: UsersUserXtrCounters, item: Optio
             infa_text = ('вероятность -', 'шанс этого', 'мне кажется около')
             await message.answer(f"@id{message.from_id} ({info.first_name}), {random.choice(infa_text)} "
                                  f"{random.randint(0, 100)}%")
+
+
+@bot.on.message(text=["Разное", "разное"])
+@bot.on.message(payload={"cmd": "cmd_other"})
+async def other_handler(message: Message, info: UsersUserXtrCounters):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        await message.answer(f"@id{message.from_id} ({info.first_name}), раздел \"Разное\" 💡", keyboard=OTHER_KEYBOARD)
+
+
+@bot.on.message(text=["Игры", "игры"])
+@bot.on.message(payload={"cmd": "cmd_games"})
+async def games_handler(message: Message, info: UsersUserXtrCounters):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        await message.answer(f"@id{message.from_id} ({info.first_name}), мои игры: \n"
+                             f"🔫 Рулетка - русская рулетка\n"
+                             f"🎲 Кубик [1-6]\n"
+                             f"🎰 Казино [сумма]\n"
+                             f"📈 Трейд [вверх/вниз] [сумма]\n"
+                             f"🥛 Стаканчик [1-3] [сумма]\n"
+                             f"🦅 Монетка [орёл/решка] [сумма]", keyboard=GAMES_KEYBOARD)
+
+
+# @bot.on.message(text=["Рулетка", "рулетка"])
+# @bot.on.message(payload={"cmd": "games_roulette"})
+# async def gam_roulette_handler(message: Message, info: UsersUserXtrCounters):
 
 
 # Admin commands
