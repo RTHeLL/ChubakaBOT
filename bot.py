@@ -1,6 +1,9 @@
 import configparser
 import logging
 import random
+import math
+import json
+import requests
 from typing import Optional, Any, List
 
 # Import VKBottle
@@ -64,7 +67,7 @@ MAIN_KEYBOARD = Keyboard(one_time=False, inline=False).schema(
 OTHER_KEYBOARD = Keyboard(one_time=False, inline=False).schema(
     [
         [
-            {"label": "🚀 Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "primary"},
+            {"label": "🚀 Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "secondary"},
             {"label": "🖨 Реши", "type": "text", "payload": {"cmd": "cmd_equation"}, "color": "secondary"},
             {"label": "📊 Курс", "type": "text", "payload": {"cmd": "cmd_course"}, "color": "secondary"}
         ],
@@ -73,7 +76,7 @@ OTHER_KEYBOARD = Keyboard(one_time=False, inline=False).schema(
             {"label": "🤝 Передать", "type": "text", "payload": {"cmd": "cmd_transfer"}, "color": "secondary"}
         ],
         [
-            {"label": "⚙ Настройки", "type": "text", "payload": {"cmd": "cmd_settings"}, "color": "secondary"},
+            {"label": "⚙ Настройки", "type": "text", "payload": {"cmd": "cmd_settings"}, "color": "primary"},
             {"label": "◀ В главное меню", "type": "text", "payload": {"cmd": "cmd_mainmenu"}, "color": "positive"}
         ]
     ]
@@ -82,17 +85,59 @@ OTHER_KEYBOARD = Keyboard(one_time=False, inline=False).schema(
 GAMES_KEYBOARD = Keyboard(one_time=False, inline=False).schema(
     [
         [
-            {"label": "🔫 Рулетка", "type": "text", "payload": {"cmd": "games_roulette"}, "color": "primary"},
-            {"label": "🎲 Кубик", "type": "text", "payload": {"cmd": "games_cube"}, "color": "secondary"},
-            {"label": "🎰 Казино", "type": "text", "payload": {"cmd": "games_casino"}, "color": "secondary"}
+            {"label": "🔫 Рулетка", "type": "text", "payload": {"cmd": "game_roulette"}, "color": "secondary"},
+            {"label": "🎲 Кубик", "type": "text", "payload": {"cmd": "game_cube"}, "color": "secondary"},
+            {"label": "🎰 Казино", "type": "text", "payload": {"cmd": "game_casino"}, "color": "secondary"}
         ],
         [
-            {"label": "📈 Трейд", "type": "text", "payload": {"cmd": "games_trade"}, "color": "secondary"},
-            {"label": "🥛 Стаканчик", "type": "text", "payload": {"cmd": "games_glass"}, "color": "secondary"},
-            {"label": "🦅 Монетка", "type": "text", "payload": {"cmd": "games_coin"}, "color": "secondary"}
+            {"label": "📈 Трейд", "type": "text", "payload": {"cmd": "game_trade"}, "color": "secondary"},
+            {"label": "🥛 Стаканчик", "type": "text", "payload": {"cmd": "game_cup"}, "color": "secondary"},
+            {"label": "🦅 Монетка", "type": "text", "payload": {"cmd": "game_coin"}, "color": "secondary"}
         ],
         [
-            {"label": "◀ В главное меню", "type": "text", "payload": {"cmd": "cmd_mainmenu"}, "color": "positive"}
+            {"label": "◀ В раздел \"разное\"", "type": "text", "payload": {"cmd": "cmd_other"}, "color": "positive"}
+        ]
+    ]
+).get_json()
+
+GAME_ROULETTE_KEYBOARD = Keyboard(one_time=False, inline=False).schema(
+    [
+        [
+            {"label": "🔫 Выстрелить", "type": "text", "payload": {"cmd": "game_roulette_shot"}, "color": "secondary"},
+            {"label": "💵 Остановиться", "type": "text", "payload": {"cmd": "game_roulette_stop"}, "color": "secondary"},
+        ],
+        [
+            {"label": "◀ Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "positive"}
+        ]
+    ]
+).get_json()
+
+GAME_CUBE_KEYBOARD = Keyboard(one_time=False, inline=False).schema(
+    [
+        [
+            {"label": "🎲 1", "type": "text", "payload": {"cmd": "game_cube_1"}, "color": "secondary"},
+            {"label": "🎲 2", "type": "text", "payload": {"cmd": "game_cube_2"}, "color": "secondary"},
+            {"label": "🎲 3", "type": "text", "payload": {"cmd": "game_cube_3"}, "color": "secondary"}
+        ],
+        [
+            {"label": "🎲 4", "type": "text", "payload": {"cmd": "game_cube_4"}, "color": "secondary"},
+            {"label": "🎲 5", "type": "text", "payload": {"cmd": "game_cube_5"}, "color": "secondary"},
+            {"label": "🎲 6", "type": "text", "payload": {"cmd": "game_cube_6"}, "color": "secondary"}
+        ],
+        [
+            {"label": "◀ Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "positive"}
+        ]
+    ]
+).get_json()
+
+GAME_COIN_KEYBOARD = Keyboard(one_time=False, inline=False).schema(
+    [
+        [
+            {"label": "🦅 Орел", "type": "text", "payload": {"cmd": "game_coin_1"}, "color": "secondary"},
+            {"label": "🗂 Решка", "type": "text", "payload": {"cmd": "game_coin_2"}, "color": "secondary"},
+        ],
+        [
+            {"label": "◀ Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "positive"}
         ]
     ]
 ).get_json()
@@ -729,6 +774,38 @@ async def infa_handler(message: Message, info: UsersUserXtrCounters, item: Optio
                                  f"{random.randint(0, 100)}%")
 
 
+@bot.on.message(text=["Реши", "реши"])
+@bot.on.message(text=["Реши <equation>", "реши <equation>"])
+@bot.on.message(payload={"cmd": "cmd_equation"})
+async def equation_handler(message: Message, info: UsersUserXtrCounters, equation: Optional[str] = None):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        if equation is None:
+            await message.answer(f"@id{message.from_id} ({info.first_name}), Используйте: реши [уравнение]")
+        else:
+            await message.answer(f"@id{message.from_id} ({info.first_name}), {eval(equation)}")
+
+
+@bot.on.message(text=["Курс", "курс"])
+@bot.on.message(payload={"cmd": "cmd_course"})
+async def course_handler(message: Message, info: UsersUserXtrCounters):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        bit = requests.get('https://api.cryptonator.com/api/ticker/btc-usd',
+                           headers={'User-Agent': 'Mozilla/5.0 (Platform; Security; OS-or-CPU; Localization; rv:1.4) '
+                                                  'Gecko/20030624 Netscape/7.1 (ax)'}).json()
+        await message.answer(f'@id{message.from_id} ({info.first_name}), курс валют на данный момент:\n'
+                             f'💸 Биткоин: {general.change_number(math.trunc(float(bit["ticker"]["price"])))}$')
+
+
 @bot.on.message(text=["Разное", "разное"])
 @bot.on.message(payload={"cmd": "cmd_other"})
 async def other_handler(message: Message, info: UsersUserXtrCounters):
@@ -758,10 +835,293 @@ async def games_handler(message: Message, info: UsersUserXtrCounters):
                              f"🥛 Стаканчик [1-3] [сумма]\n"
                              f"🦅 Монетка [орёл/решка] [сумма]", keyboard=GAMES_KEYBOARD)
 
-# todo finality games
-# @bot.on.message(text=["Рулетка", "рулетка"])
-# @bot.on.message(payload={"cmd": "games_roulette"})
-# async def gam_roulette_handler(message: Message, info: UsersUserXtrCounters):
+
+# Game roulette
+@bot.on.message(text=["Рулетка", "рулетка"])
+@bot.on.message(payload={"cmd": "game_roulette"})
+async def game_roulette_handler(message: Message, info: UsersUserXtrCounters):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        user = UserAction.get_user(message.from_id)
+        user[0]["Roulette_Shots"] = 1
+        UserAction.save_user(message.from_id, user)
+        await message.answer(f"@id{message.from_id} ({info.first_name}), Вы начали игру в \"Русскую рулетку\" 👍\n"
+                             f"🔫 Для игры введите \"выстрелить\"\n"
+                             f"❌ Чтобы выйти из игры, напишет \"остановиться\"", keyboard=GAME_ROULETTE_KEYBOARD)
+
+
+@bot.on.message(text=["Выстрелить", "выстрелить"])
+@bot.on.message(payload={"cmd": "game_roulette_shot"})
+async def game_roulette_shot_handler(message: Message, info: UsersUserXtrCounters):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        user = UserAction.get_user(message.from_id)
+        shot = random.randint(1, 6)
+        if user[0]["Roulette_Shots"] <= 0:
+            user[0]["Roulette_Shots"] = 1
+            UserAction.save_user(message.from_id, user)
+            await message.answer(f'@id{message.from_id} ({info.first_name}), Вы начали игру в \"Русскую рулетку\" 👍\n'
+                                 f'🔫 Для игры введите \"выстрелить\"\n'
+                                 f'❌ Чтобы выйти из игры, напишет \"остановиться\"', keyboard=GAME_ROULETTE_KEYBOARD)
+        else:
+            if shot == 1 and user[0]["Roulette_Shots"] > 0:
+                if user[0]["Money"] >= 8000:
+                    heal_money = random.randint(1, 8)*1000
+                    await message.answer(f'@id{message.from_id} ({info.first_name}), Вы выстрелили на '
+                                         f'{user[0]["Roulette_Shots"]}-й попытке ☹\n'
+                                         f'💸 Ваш выигрыш: {general.change_number(user[0]["Roulette_Shots"]*2500)}$\n'
+                                         f'❤ На лечение потрачено: {general.change_number(heal_money)}$', keyboard=GAME_ROULETTE_KEYBOARD)
+                    user[0]["Money"] -= heal_money
+                    user[0]["Money"] += user[0]["Roulette_Shots"]*2500
+                    user[0]["Roulette_Shots"] = 0
+                    UserAction.save_user(message.from_id, user)
+                else:
+                    await message.answer(f'@id{message.from_id} ({info.first_name}), Вы выстрелили на '
+                                         f'{user[0]["Roulette_Shots"]}-й попытке ☹\n'
+                                         f'💸 Ваш выигрыш: {general.change_number(user[0]["Roulette_Shots"]*2500)}$', keyboard=GAME_ROULETTE_KEYBOARD)
+                    user[0]["Money"] += user[0]["Roulette_Shots"]*2500
+                    user[0]["Roulette_Shots"] = 0
+                    UserAction.save_user(message.from_id, user)
+            else:
+                user[0]["Roulette_Shots"] += 1
+                UserAction.save_user(message.from_id, user)
+                await message.answer(f'@id{message.from_id} ({info.first_name}), Вы сделали '
+                                     f'{user[0]["Roulette_Shots"]-1}-ю осечку', keyboard=GAME_ROULETTE_KEYBOARD)
+
+
+@bot.on.message(text=["Остановиться", "остановиться"])
+@bot.on.message(payload={"cmd": "game_roulette_stop"})
+async def game_roulette_shot_handler(message: Message, info: UsersUserXtrCounters):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        user = UserAction.get_user(message.from_id)
+        if user[0]["Roulette_Shots"]-1 <= 0:
+            await message.answer(f'@id{message.from_id} ({info.first_name}), Вы не играли в \"Русскую рулетку\"\n'
+                                 f'🔫 Для начала игры введите \"рулетка\"\n', keyboard=GAMES_KEYBOARD)
+        else:
+            if user[0]["Roulette_Shots"]-1 > 0:
+                await message.answer(f'@id{message.from_id} ({info.first_name}), Вы остановилсь на '
+                                     f'{user[0]["Roulette_Shots"]}-й попытке 👍\n'
+                                     f'💸 Ваш выигрыш: {general.change_number(user[0]["Roulette_Shots"]*2500)}$', keyboard=GAMES_KEYBOARD)
+                user[0]["Money"] += user[0]["Roulette_Shots"]*2500
+                user[0]["Roulette_Shots"] = 0
+                UserAction.save_user(message.from_id, user)
+
+
+# Game cube
+@bot.on.message(text=["Кубик", "кубик"])
+@bot.on.message(payload={"cmd": "game_cube"})
+async def game_cube_handler(message: Message, info: UsersUserXtrCounters):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        await message.answer(f"@id{message.from_id} ({info.first_name}), Вы начали игру в \"Кубик\" 👍\n"
+                             f"🎲 Для игры в кубик выбирайте числа от 1 до 6\n", keyboard=GAME_CUBE_KEYBOARD)
+
+
+@bot.on.message(payload={"cmd": "game_cube_1"})
+@bot.on.message(payload={"cmd": "game_cube_2"})
+@bot.on.message(payload={"cmd": "game_cube_3"})
+@bot.on.message(payload={"cmd": "game_cube_4"})
+@bot.on.message(payload={"cmd": "game_cube_5"})
+@bot.on.message(payload={"cmd": "game_cube_6"})
+async def game_cube_number_handler(message: Message, info: UsersUserXtrCounters):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        user = UserAction.get_user(message.from_id)
+        temp_number = message.payload.split('{"cmd":"game_cube_')[1].split('"}')[0]
+        cube_temp = random.randint(1, 6)
+        cube_prize = random.randint(2, 50)*1000
+        if cube_temp == int(temp_number):
+            await message.answer(f'@id{message.from_id} ({info.first_name}), Вы угадали 🎉\n'
+                                 f'🎲 Выпало число: {cube_prize}\n'
+                                 f'💸 Ваш выигрыш: {general.change_number(cube_prize)}$', keyboard=GAME_CUBE_KEYBOARD)
+            user[0]["Money"] += cube_prize
+            UserAction.save_user(message.from_id, user)
+        else:
+            await message.answer(f'@id{message.from_id} ({info.first_name}), Вы не угадали 😟\n'
+                                 f'🎲 Выпало число: {cube_temp}', keyboard=GAME_CUBE_KEYBOARD)
+
+
+# Game coin
+@bot.on.message(text=["Монетка", "монетка"])
+@bot.on.message(payload={"cmd": "game_coin"})
+async def game_cube_handler(message: Message, info: UsersUserXtrCounters):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        await message.answer(f"@id{message.from_id} ({info.first_name}), Вы начали игру в \"Монетка\" 👍\n"
+                             f"🦅 Для игры в кубик выбирайте \"Орел\" или \"Решка\"\n", keyboard=GAME_COIN_KEYBOARD)
+
+
+@bot.on.message(payload={"cmd": "game_coin_1"})
+@bot.on.message(payload={"cmd": "game_coin_2"})
+async def game_cube_number_handler(message: Message, info: UsersUserXtrCounters):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        user = UserAction.get_user(message.from_id)
+        temp_number = message.payload.split('{"cmd":"game_coin_')[1].split('"}')[0]
+        coin_temp = random.randint(1, 2)
+        coin_prize = random.randint(2, 25)*1000
+        if coin_temp == int(temp_number):
+            await message.answer(f'@id{message.from_id} ({info.first_name}), Вы угадали 🎉\n'
+                                 f'🦅 Выпало: {"орел" if coin_temp == 1 else "решка"}\n'
+                                 f'💸 Ваш выигрыш: {general.change_number(coin_prize)}$', keyboard=GAME_COIN_KEYBOARD)
+            user[0]["Money"] += coin_prize
+            UserAction.save_user(message.from_id, user)
+        else:
+            await message.answer(f'@id{message.from_id} ({info.first_name}), Вы не угадали 😟\n'
+                                 f'🦅 Выпало: {"орел" if coin_temp == 1 else "решка"}', keyboard=GAME_COIN_KEYBOARD)
+
+
+# Game cup
+@bot.on.message(text=["Стаканчик <cupnumber:int> <money:int>", "стаканчик <cupnumber:int> <money:int>"])
+@bot.on.message(payload={"cmd": "game_cup"})
+async def game_cup_handler(message: Message, info: UsersUserXtrCounters, cupnumber: Optional[int] = None,
+                           money: Optional[int] = None):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        if cupnumber is None or money is None or cupnumber > 3:
+            await message.answer(f"@id{message.from_id} ({info.first_name}), для игры в \"Стаканчик\"\n"
+                                 f"Используйте: стаканчик [1-3] [ставка]")
+        else:
+            user = UserAction.get_user(message.from_id)
+            cup_temp = random.randint(1, 3)
+            if cup_temp == cupnumber:
+                await message.answer(f'@id{message.from_id} ({info.first_name}), Вы угадали 🎉\n'
+                                     f'💸 Ваш выигрыш: {general.change_number(math.trunc(money/2))}$')
+                user[0]["Money"] += math.trunc(money/2)
+                UserAction.save_user(message.from_id, user)
+            else:
+                await message.answer(f'@id{message.from_id} ({info.first_name}), Вы не угадали 😟\n'
+                                     f'🥛 это был {cup_temp}-й стаканчик')
+                user[0]["Money"] -= money
+                UserAction.save_user(message.from_id, user)
+
+
+# Game trade
+@bot.on.message(text=["Трейд <change> <money:int>", "трейд <change> <money:int>"])
+@bot.on.message(payload={"cmd": "game_trade"})
+async def game_trade_handler(message: Message, info: UsersUserXtrCounters, change: Optional[str] = None,
+                             money: Optional[int] = None):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        if change is None or money is None:
+            await message.answer(f"@id{message.from_id} ({info.first_name}), для игры в \"Трейд\"\n"
+                                 f"Используйте: трейд [вверх/вниз] [ставка]")
+        else:
+            user = UserAction.get_user(message.from_id)
+            trade_temp = random.randint(1, 5)
+            trade_course = random.randint(1, 1000)
+            if change == 'вверх':
+                if trade_temp == 1:
+                    await message.answer(f'@id{message.from_id} ({info.first_name}), курс подорожал ⤴ на '
+                                         f'{general.change_number(trade_course)}$\n'
+                                         f'💸 Вы заработали: {general.change_number(money)}$ 😎')
+                    user[0]["Money"] += money
+                    UserAction.save_user(message.from_id, user)
+                else:
+                    await message.answer(f'@id{message.from_id} ({info.first_name}), курс подешевел ⤵ на '
+                                         f'{general.change_number(trade_course)}$\n'
+                                         f'💸 Вы потеряли: {general.change_number(money)}$ 😔')
+                    user[0]["Money"] -= money
+                    UserAction.save_user(message.from_id, user)
+            elif change == 'вниз':
+                if trade_temp == 1:
+                    await message.answer(f'@id{message.from_id} ({info.first_name}), курс подешевел ⤵ на '
+                                         f'{general.change_number(trade_course)}$\n'
+                                         f'💸 Вы заработали: {general.change_number(money)}$ 😎')
+                    user[0]["Money"] += money
+                    UserAction.save_user(message.from_id, user)
+                else:
+                    await message.answer(f'@id{message.from_id} ({info.first_name}), курс подорожал ⤴ на '
+                                         f'{general.change_number(trade_course)}$\n'
+                                         f'💸 Вы потеряли: {general.change_number(money)}$ 😔')
+                    user[0]["Money"] -= money
+                    UserAction.save_user(message.from_id, user)
+            else:
+                await message.answer(f"@id{message.from_id} ({info.first_name}), для игры в \"Трейд\"\n"
+                                     f"Используйте: трейд [вверх/вниз] [ставка]")
+
+
+# Game trade
+@bot.on.message(text=["Казино <money:int>", "казино <money:int>"])
+@bot.on.message(payload={"cmd": "game_casino"})
+async def game_casino_handler(message: Message, info: UsersUserXtrCounters, money: Optional[int] = None):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        if money is None:
+            await message.answer(f"@id{message.from_id} ({info.first_name}), для игры в \"Казино\"\n"
+                                 f"Используйте: казино [ставка]")
+        else:
+            user = UserAction.get_user(message.from_id)
+            casino_temp = random.choice([0, 0.5, 2, 5, 10])
+            if casino_temp == 0:
+                await message.answer(f'@id{message.from_id} ({info.first_name}), Вам выпал коэффициент {casino_temp}\n'
+                                     f'💸 Вы потеряли {general.change_number(money*casino_temp)}$')
+                user[0]["Money"] += money*casino_temp
+                UserAction.save_user(message.from_id, user)
+            elif casino_temp == 0.5:
+                await message.answer(f'@id{message.from_id} ({info.first_name}), Вам выпал коэффициент {casino_temp}\n'
+                                     f'💸 Вы заработали: {general.change_number(math.trunc(money*casino_temp))}$')
+                user[0]["Money"] += money*casino_temp
+                UserAction.save_user(message.from_id, user)
+            elif casino_temp == 2:
+                await message.answer(f'@id{message.from_id} ({info.first_name}), Вам выпал коэффициент {casino_temp}\n'
+                                     f'💸 Вы заработали: {general.change_number(money*casino_temp)}$')
+                user[0]["Money"] += money*casino_temp
+                UserAction.save_user(message.from_id, user)
+            elif casino_temp == 5:
+                await message.answer(f'@id{message.from_id} ({info.first_name}), Вам выпал коэффициент {casino_temp}\n'
+                                     f'💸 Вы заработали: {general.change_number(money*casino_temp)}$')
+                user[0]["Money"] += money*casino_temp
+                UserAction.save_user(message.from_id, user)
+            elif casino_temp == 10:
+                await message.answer(f'@id{message.from_id} ({info.first_name}), Вам выпал коэффициент {casino_temp}\n'
+                                     f'💸 Вы заработали: {general.change_number(money*casino_temp)}$')
+                user[0]["Money"] += money*casino_temp
+                UserAction.save_user(message.from_id, user)
+            else:
+                await message.answer(f"@id{message.from_id} ({info.first_name}), для игры в \"Казино\"\n"
+                                     f"Используйте: казино [ставка]")
 
 
 # Admin commands
