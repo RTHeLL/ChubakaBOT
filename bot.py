@@ -2,7 +2,6 @@ import configparser
 import logging
 import random
 import math
-import json
 import requests
 from typing import Optional, Any, List
 
