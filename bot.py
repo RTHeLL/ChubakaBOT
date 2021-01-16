@@ -758,7 +758,7 @@ async def games_handler(message: Message, info: UsersUserXtrCounters):
                              f"🥛 Стаканчик [1-3] [сумма]\n"
                              f"🦅 Монетка [орёл/решка] [сумма]", keyboard=GAMES_KEYBOARD)
 
-
+# todo finality games
 # @bot.on.message(text=["Рулетка", "рулетка"])
 # @bot.on.message(payload={"cmd": "games_roulette"})
 # async def gam_roulette_handler(message: Message, info: UsersUserXtrCounters):
