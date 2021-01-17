@@ -10,8 +10,8 @@ config.read("config/mysql.ini")
 class MySQL:
     # Connection
     try:
-        connection = pymysql.connect(config["DATA"]["SQL_HOST"], config["DATA"]["SQL_USER"],
-                                     config["DATA"]["SQL_PASS"], config["DATA"]["SQL_DB"])
+        connection = pymysql.connect(host=config["DATA"]["SQL_HOST"], user=config["DATA"]["SQL_USER"],
+                                     password=config["DATA"]["SQL_PASS"], database=config["DATA"]["SQL_DB"])
         print(f'MySQL success connected!')
     except MySQLError as e:
         logging.log(logging.FATAL, e)
