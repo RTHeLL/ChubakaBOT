@@ -1,0 +1,7 @@
+.idea/
+config/
+logs/
+classes/__pycache__
+# files
+fast_paste_in_base.py
+tests.py
