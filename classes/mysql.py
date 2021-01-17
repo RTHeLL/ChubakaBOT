@@ -22,8 +22,12 @@ class UserAction(MySQL):
     def create_user(self, vk_id, name):
         with self.connection.cursor() as cursor:
             for table in config.items("USERS_TABLES"):
-                sql = f"INSERT INTO %s (VK_ID, %s) VALUES (%s, %s)"
-                cursor.execute(sql % (table[0], config["USERS_COLUMNS"]["NAME"], vk_id, name))
+                if table[0] == config["USERS_TABLES"]["USERS"]:
+                    sql = f"INSERT INTO %s (VK_ID, %s) VALUES (%s, '%s')"
+                    cursor.execute(sql % (table[0], config["USERS_COLUMNS"]["NAME"], vk_id, name))
+                else:
+                    sql = f"INSERT INTO %s (VK_ID) VALUES (%s)"
+                    cursor.execute(sql % (table[0], vk_id))
         self.connection.commit()
 
     # Function getting user

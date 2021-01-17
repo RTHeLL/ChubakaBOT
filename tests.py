@@ -18,10 +18,7 @@ fliptext_dict = {'q': 'q', 'w': 'ʍ', 'e': 'ǝ', 'r': 'ɹ', 't': 'ʇ', 'y': 'ʎ'
 
 
 def test_get_user():
-    bit = requests.get('https://api.cryptonator.com/api/ticker/btc-usd',
-                       headers={'User-Agent': 'Mozilla/5.0 (Platform; Security; OS-or-CPU; Localization; rv:1.4) '
-                                              'Gecko/20030624 Netscape/7.1 (ax)'}).json()
-    print(bit["ticker"]["price"])
+    UserAction.create_user(50, "test")
 
 
 test_get_user()

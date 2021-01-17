@@ -34,7 +34,8 @@ general = data.general.General()
 logging.basicConfig(filename="logs/logs.log")
 logging.basicConfig(level=logging.INFO)
 
-# VK Connection
+# VK ConnectionTypeError: __init__() takes 1 positional argument but 5 were given
+
 bot = Bot(config["VK_DATA"]["GROUP_TOKEN"])
 
 # Keyboards
