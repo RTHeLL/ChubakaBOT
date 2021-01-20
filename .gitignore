@@ -1,7 +1,7 @@
-.idea/
 config/
 logs/
-classes/__pycache__
+classes/__pycache__/
+.idea/
 # files
 fast_paste_in_base.py
 tests.py
