@@ -154,3 +154,13 @@ class MainData(MySQL):
             logging.debug(f'New farm "{kwargs[args_list[0]]} - price: {kwargs[args_list[1]]}$, btc per hour: '
                           f'{kwargs[args_list[2]]}" added!')
         self.connection.commit()
+
+    def get_settings(self):
+        with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            sql = "SELECT * FROM settings"
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            if len(result) == 0:
+                return False
+            else:
+                return result
