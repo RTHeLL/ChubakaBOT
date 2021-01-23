@@ -91,6 +91,17 @@ class UserAction(MySQL):
             else:
                 return result
 
+    # Function get admins
+    def get_admins(self):
+        with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            sql = "SELECT * FROM %s WHERE `RankLevel`>6"
+            cursor.execute(sql % config["USERS_TABLES"]["USERS"])
+            result = cursor.fetchall()
+            if len(result) == 0:
+                return False
+            else:
+                return result
+
 
 class MainData(MySQL):
     # Function getting cars
@@ -157,8 +168,36 @@ class MainData(MySQL):
 
     def get_settings(self):
         with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
-            sql = "SELECT * FROM settings"
-            cursor.execute(sql)
+            sql = "SELECT * FROM %s"
+            cursor.execute(sql % config["MAIN_TABLES"]["SETTINGS"])
+            result = cursor.fetchall()
+            if len(result) == 0:
+                return False
+            else:
+                return result
+
+    def add_report_question(self, **kwargs):
+        with self.connection.cursor() as cursor:
+            args_list = list(kwargs.keys())
+            sql = f"INSERT INTO %s (%s, %s) VALUES ('%s', '%s')"
+            cursor.execute(sql % (config["MAIN_TABLES"]["REPORTS"], args_list[0], args_list[1], kwargs[args_list[0]],
+                                  kwargs[args_list[1]]))
+            logging.debug(f'New report: {kwargs[args_list[0]]}. Asked: {kwargs[args_list[1]]}')
+        self.connection.commit()
+
+    def add_report_answer(self, **kwargs):
+        with self.connection.cursor() as cursor:
+            args_list = list(kwargs.keys())
+            sql = f"UPDATE %s SET %s='%s', %s=%s WHERE `ID`=%s"
+            cursor.execute(sql % (config["MAIN_TABLES"]["REPORTS"], args_list[0], kwargs[args_list[0]], args_list[1],
+                                  kwargs[args_list[1]], kwargs[args_list[2]]))
+            logging.debug(f'New answer: {kwargs[args_list[0]]}. Answering: {kwargs[args_list[1]]}')
+        self.connection.commit()
+
+    def get_reports(self):
+        with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            sql = "SELECT * FROM %s"
+            cursor.execute(sql % config["MAIN_TABLES"]["REPORTS"])
             result = cursor.fetchall()
             if len(result) == 0:
                 return False
