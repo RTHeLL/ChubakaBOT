@@ -1,7 +1,10 @@
 # Folders
 config/
 logs/
+classes/__pycache__
+data/__pycache__
 
 # Files
 fast_paste_in_base.py
 tests.py
+README.md
