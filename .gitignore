@@ -1,5 +1,7 @@
 # Folders
 config/
+config/mysql.ini
+config/vk.ini
 logs/
 classes/__pycache__
 data/__pycache__
@@ -8,3 +10,6 @@ data/__pycache__
 fast_paste_in_base.py
 tests.py
 README.md
+start.sh
+stop.sh
+nohup.out
