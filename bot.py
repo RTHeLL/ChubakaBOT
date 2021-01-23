@@ -1086,6 +1086,21 @@ async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, pro
                 user[0]["Money"] += math.trunc(shop_data[6][user[1]["Phone"] - 1]["Price"]/2)
                 user[1]["Phone"] = 0
                 UserAction.save_user(message.from_id, user)
+        elif property_name == 'ферма':
+            if count is None or count == 0:
+                await message.answer(f'@id{message.from_id} ({info.first_name}), для продажи ферм используйте: '
+                                     f'продать ферма [кол-во]')
+            else:
+                if user[1]["Farms"] < count:
+                    await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет столько ферм! Для '
+                                         f'покупки используйте магазин.')
+                else:
+                    await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
+                                         f'{general.change_number(count)} ферм {shop_data[7][user[1]["FarmsType"] - 1]["FarmName"]} за '
+                                         f'{general.change_number(math.trunc(shop_data[7][user[1]["FarmsType"] - 1]["Price"]/2)*count)}$')
+                    user[0]["Money"] += math.trunc(shop_data[7][user[1]["FarmsType"] - 1]["Price"]/2)*count
+                    user[1]["Farms"] -= count
+                    UserAction.save_user(message.from_id, user)
         elif property_name == 'рейтинг':
             if count is None or count == 0:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), для продажи рейтинга используйте: '
