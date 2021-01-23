@@ -108,7 +108,7 @@ class MainData(MySQL):
         with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
             result = []
             for table in config.items("PROPERTY_TABLES"):
-                sql = "SELECT * FROM %s"
+                sql = "SELECT * FROM %s ORDER BY Price"
                 cursor.execute(sql % table[0])
                 result.append(cursor.fetchall())
             if len(result) == 0:

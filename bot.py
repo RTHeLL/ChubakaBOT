@@ -68,6 +68,7 @@ SHOP_KEYBOARD = Keyboard(one_time=False, inline=False).schema(
     [
         [
             {"label": "🚗 Машины", "type": "text", "payload": {"cmd": "cmd_shop_transport_cars"}, "color": "secondary"},
+            {"label": "🏍 Мотоциклы", "type": "text", "payload": {"cmd": "cmd_shop_transport_motorcycles"}, "color": "secondary"},
             {"label": "🛥 Яхты", "type": "text", "payload": {"cmd": "cmd_shop_transport_yachts"}, "color": "secondary"},
             {"label": "🛩 Самолеты", "type": "text", "payload": {"cmd": "cmd_shop_transport_airplanes"}, "color": "secondary"},
             {"label": "🚁 Вертолеты", "type": "text", "payload": {"cmd": "cmd_shop_transport_helicopters"}, "color": "secondary"}
@@ -281,6 +282,8 @@ async def profile_handler(message: Message, info: UsersUserXtrCounters):
         temp_message += f'\n🔑 Имущество:\n'
         if user[1]["Car"] > 0:
             temp_message += f'⠀🚗 Машина: {MainData.get_data("cars")[user[1]["Car"] - 1]["CarName"]}\n'
+        if user[1]["Motorcycle"] > 0:
+            temp_message += f'⠀🏍 Мотоцикл: {MainData.get_data("motorcycles")[user[1]["Motorcycle"] - 1]["MotoName"]}\n'
         if user[1]["Yacht"] > 0:
             temp_message += f'⠀🛥 Яхта: {MainData.get_data("yachts")[user[1]["Yacht"] - 1]["YachtName"]}\n'
         if user[1]["Airplane"] > 0:
@@ -381,6 +384,7 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
             await message.answer(f'@id{message.from_id} ({info.first_name}), разделы магазина:\n'
                                  f'🚙 Транспорт:\n'
                                  f'⠀🚗 Машины\n'
+                                 f'⠀🏍 Мотоциклы\n'
                                  f'⠀🛥 Яхты\n'
                                  f'⠀🛩 Самолеты\n'
                                  f'⠀🚁 Вертолеты\n'
@@ -399,7 +403,7 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
         elif category.lower() == 'машины':
             if product is None:
                 for car in shop_data[0]:
-                    temp_text += f'\n🔸 {car["ID"]}. {car["CarName"]} [{general.change_number(car["CarPrice"])}$]'
+                    temp_text += f'\n🔸 {car["ID"]}. {car["CarName"]} [{general.change_number(car["Price"])}$]'
                 await message.answer(f'@id{message.from_id} ({info.first_name}), машины: {temp_text}\n\n '
                                      f'❓ Для покупки введите "магазин машины купить [номер]"')
             else:
@@ -407,15 +411,15 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
                     await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас уже есть машина! Для покупки'
                                          f', продайте старую: продать машина!')
                 else:
-                    if user[0]["Money"] < shop_data[0][int(product) - 1]["CarPrice"]:
+                    if user[0]["Money"] < shop_data[0][int(product) - 1]["Price"]:
                         await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет столько денег!')
                     else:
-                        user[0]["Money"] -= shop_data[0][int(product) - 1]["CarPrice"]
+                        user[0]["Money"] -= shop_data[0][int(product) - 1]["Price"]
                         user[1]["Car"] = product
                         UserAction.save_user(message.from_id, user)
                         await message.answer(f'@id{message.from_id} ({info.first_name}), Вы приобрели себе '
                                              f'{shop_data[0][int(product) - 1]["CarName"]} за '
-                                             f'{general.change_number(shop_data[0][int(product) - 1]["CarPrice"])}$')
+                                             f'{general.change_number(shop_data[0][int(product) - 1]["Price"])}$')
         elif category.lower() == 'яхты':
             if product is None:
                 for yacht in shop_data[1]:
@@ -440,7 +444,7 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
             if product is None:
                 for airplane in shop_data[2]:
                     temp_text += f'\n🔸 {airplane["ID"]}. {airplane["AirplaneName"]} ' \
-                                 f'[{general.change_number(airplane["AirplanePrice"])}$]'
+                                 f'[{general.change_number(airplane["Price"])}$]'
                 await message.answer(f'@id{message.from_id} ({info.first_name}), самолеты: {temp_text}\n\n '
                                      f'❓ Для покупки введите "магазин самолеты купить [номер]"')
             else:
@@ -448,20 +452,20 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
                     await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас уже есть самолет! Для '
                                          f'покупки, продайте старый: продать самолет!')
                 else:
-                    if user[0]["Money"] < shop_data[2][int(product) - 1]["AirplanePrice"]:
+                    if user[0]["Money"] < shop_data[2][int(product) - 1]["Price"]:
                         await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет столько денег!')
                     else:
-                        user[0]["Money"] -= shop_data[2][int(product) - 1]["AirplanePrice"]
+                        user[0]["Money"] -= shop_data[2][int(product) - 1]["Price"]
                         user[1]["Airplane"] = product
                         UserAction.save_user(message.from_id, user)
                         await message.answer(f'@id{message.from_id} ({info.first_name}), Вы приобрели себе '
                                              f'{shop_data[2][int(product) - 1]["AirplaneName"]} за '
-                                             f'{general.change_number(shop_data[2][int(product) - 1]["AirplanePrice"])}$')
+                                             f'{general.change_number(shop_data[2][int(product) - 1]["Price"])}$')
         elif category.lower() == 'вертолеты':
             if product is None:
                 for helicopters in shop_data[3]:
                     temp_text += f'\n🔸 {helicopters["ID"]}. {helicopters["HelicopterName"]} ' \
-                                 f'[{general.change_number(helicopters["HelicopterPrice"])}$]'
+                                 f'[{general.change_number(helicopters["Price"])}$]'
                 await message.answer(f'@id{message.from_id} ({info.first_name}), вертолеты: {temp_text}\n\n '
                                      f'❓ Для покупки введите "магазин вертолеты купить [номер]"')
             else:
@@ -469,20 +473,20 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
                     await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас уже есть вертолет! Для '
                                          f'покупки, продайте старый: продать вертолет!')
                 else:
-                    if user[0]["Money"] < shop_data[3][int(product) - 1]["HelicopterPrice"]:
+                    if user[0]["Money"] < shop_data[3][int(product) - 1]["Price"]:
                         await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет столько денег!')
                     else:
-                        user[0]["Money"] -= shop_data[3][int(product) - 1]["HelicopterPrice"]
+                        user[0]["Money"] -= shop_data[3][int(product) - 1]["Price"]
                         user[1]["Helicopter"] = product
                         UserAction.save_user(message.from_id, user)
                         await message.answer(f'@id{message.from_id} ({info.first_name}), Вы приобрели себе '
                                              f'{shop_data[3][int(product) - 1]["HelicopterName"]} за '
-                                             f'{general.change_number(shop_data[3][int(product) - 1]["HelicopterPrice"])}$')
+                                             f'{general.change_number(shop_data[3][int(product) - 1]["Price"])}$')
         elif category.lower() == 'дома':
             if product is None:
                 for houses in shop_data[4]:
                     temp_text += f'\n🔸 {houses["ID"]}. {houses["HouseName"]} ' \
-                                 f'[{general.change_number(houses["HousePrice"])}$]'
+                                 f'[{general.change_number(houses["Price"])}$]'
                 await message.answer(f'@id{message.from_id} ({info.first_name}), дома: {temp_text}\n\n '
                                      f'❓ Для покупки введите "магазин дома купить [номер]"')
             else:
@@ -490,20 +494,20 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
                     await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас уже есть дом! Для покупки'
                                          f', продайте старый: продать дом!')
                 else:
-                    if user[0]["Money"] < shop_data[4][int(product) - 1]["HousePrice"]:
+                    if user[0]["Money"] < shop_data[4][int(product) - 1]["Price"]:
                         await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет столько денег!')
                     else:
-                        user[0]["Money"] -= shop_data[4][int(product) - 1]["HousePrice"]
+                        user[0]["Money"] -= shop_data[4][int(product) - 1]["Price"]
                         user[1]["House"] = product
                         UserAction.save_user(message.from_id, user)
                         await message.answer(f'@id{message.from_id} ({info.first_name}), Вы приобрели себе '
                                              f'{shop_data[4][int(product) - 1]["HouseName"]} за '
-                                             f'{general.change_number(shop_data[4][int(product) - 1]["HousePrice"])}$')
+                                             f'{general.change_number(shop_data[4][int(product) - 1]["Price"])}$')
         elif category.lower() == 'квартиры':
             if product is None:
                 for apartments in shop_data[5]:
                     temp_text += f'\n🔸 {apartments["ID"]}. {apartments["ApartmentName"]} ' \
-                                 f'[{general.change_number(apartments["ApartmentPrice"])}$]'
+                                 f'[{general.change_number(apartments["Price"])}$]'
                 await message.answer(f'@id{message.from_id} ({info.first_name}), квартиры: {temp_text}\n\n '
                                      f'❓ Для покупки введите "магазин квартиры купить [номер]"')
             else:
@@ -511,20 +515,20 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
                     await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас уже есть квартира! Для '
                                          f'покупки, продайте старую: продать квартира!')
                 else:
-                    if user[0]["Money"] < shop_data[5][int(product) - 1]["ApartmentPrice"]:
+                    if user[0]["Money"] < shop_data[5][int(product) - 1]["Price"]:
                         await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет столько денег!')
                     else:
-                        user[0]["Money"] -= shop_data[5][int(product) - 1]["ApartmentPrice"]
+                        user[0]["Money"] -= shop_data[5][int(product) - 1]["Price"]
                         user[1]["Apartment"] = product
                         UserAction.save_user(message.from_id, user)
                         await message.answer(f'@id{message.from_id} ({info.first_name}), Вы приобрели себе '
                                              f'{shop_data[5][int(product) - 1]["ApartmentName"]} за '
-                                             f'{general.change_number(shop_data[5][int(product) - 1]["ApartmentPrice"])}$')
+                                             f'{general.change_number(shop_data[5][int(product) - 1]["Price"])}$')
         elif category.lower() == 'телефоны':
             if product is None:
                 for phones in shop_data[6]:
                     temp_text += f'\n🔸 {phones["ID"]}. {phones["PhoneName"]} ' \
-                                 f'[{general.change_number(phones["PhonePrice"])}$]'
+                                 f'[{general.change_number(phones["Price"])}$]'
                 await message.answer(f'@id{message.from_id} ({info.first_name}), телефоны: {temp_text}\n\n '
                                      f'❓ Для покупки введите "магазин телефоны купить [номер]"')
             else:
@@ -532,46 +536,46 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
                     await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас уже есть телефон! Для покупки'
                                          f', продайте старый: продать телефон!')
                 else:
-                    if user[0]["Money"] < shop_data[6][int(product) - 1]["PhonePrice"]:
+                    if user[0]["Money"] < shop_data[6][int(product) - 1]["Price"]:
                         await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет столько денег!')
                     else:
-                        user[0]["Money"] -= shop_data[6][int(product) - 1]["PhonePrice"]
+                        user[0]["Money"] -= shop_data[6][int(product) - 1]["Price"]
                         user[1]["Phone"] = product
                         UserAction.save_user(message.from_id, user)
                         await message.answer(f'@id{message.from_id} ({info.first_name}), Вы приобрели себе '
                                              f'{shop_data[6][int(product) - 1]["PhoneName"]} за '
-                                             f'{general.change_number(shop_data[6][int(product) - 1]["PhonePrice"])}$')
+                                             f'{general.change_number(shop_data[6][int(product) - 1]["Price"])}$')
         elif category.lower() == 'фермы':
             if product is None:
                 for farms in MainData.get_data("farms"):
                     temp_text += f'\n🔸 {farms["ID"]}. {farms["FarmName"]} - {farms["FarmBTCPerHour"]} ₿/час ' \
-                                 f'[{general.change_number(farms["FarmPrice"])}$]'
+                                 f'[{general.change_number(farms["Price"])}$]'
                 await message.answer(f'@id{message.from_id} ({info.first_name}), фермы: {temp_text}\n\n '
                                      f'❓ Для покупки введите "магазин фермы купить [номер]"')
             else:
                 if count is None:
-                    if user[0]["Money"] < shop_data[7][int(product) - 1]["FarmPrice"]:
+                    if user[0]["Money"] < shop_data[7][int(product) - 1]["Price"]:
                         await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет столько денег!')
                     else:
-                        user[0]["Money"] -= shop_data[7][int(product) - 1]["FarmPrice"]
+                        user[0]["Money"] -= shop_data[7][int(product) - 1]["Price"]
                         user[1]["Farms"] += 1
                         user[1]["FarmsType"] = product
                         UserAction.save_user(message.from_id, user)
                         await message.answer(f'@id{message.from_id} ({info.first_name}), Вы приобрели себе '
                                              f'{shop_data[7][int(product) - 1]["FarmName"]} за '
-                                             f'{general.change_number(shop_data[7][int(product) - 1]["FarmPrice"])}$')
+                                             f'{general.change_number(shop_data[7][int(product) - 1]["Price"])}$')
                 else:
-                    if user[0]["Money"] < shop_data[7][int(product) - 1]["FarmPrice"] * count:
+                    if user[0]["Money"] < shop_data[7][int(product) - 1]["Price"] * count:
                         await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет столько денег!')
                     else:
-                        user[0]["Money"] -= shop_data[7][int(product) - 1]["FarmPrice"] * count
+                        user[0]["Money"] -= shop_data[7][int(product) - 1]["Price"] * count
                         user[1]["Farms"] += count
                         user[1]["FarmsType"] = product
                         UserAction.save_user(message.from_id, user)
                         await message.answer(f'@id{message.from_id} ({info.first_name}), Вы приобрели себе '
                                              f'{general.change_number(count)} ферм(ы) '
                                              f'{shop_data[7][int(product) - 1]["FarmName"]} за '
-                                             f'{general.change_number(shop_data[7][int(product) - 1]["FarmPrice"] * count)}$')
+                                             f'{general.change_number(shop_data[7][int(product) - 1]["Price"] * count)}$')
         elif category.lower() == 'рейтинг':
             if product is None:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), ❓ Для покупки введите "магазин рейтинг'
@@ -613,7 +617,7 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
             if product is None:
                 for pets in shop_data[9]:
                     temp_text += f'\n🔸 {pets["ID"]}. {pets["PetIcon"]} {pets["PetName"]} ' \
-                                 f'[{general.change_number(pets["PetPrice"])}$]'
+                                 f'[{general.change_number(pets["Price"])}$]'
                 await message.answer(f'@id{message.from_id} ({info.first_name}), питомцы: {temp_text}\n\n '
                                      f'❓ Для покупки введите "магазин питомцы купить [номер]"')
             else:
@@ -621,22 +625,43 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
                     await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас уже есть питомец! Для '
                                          f'покупки, продайте старого: продать питомец!')
                 else:
-                    if user[0]["Money"] < shop_data[9][int(product) - 1]["PetPrice"]:
+                    if user[0]["Money"] < shop_data[9][int(product) - 1]["Price"]:
                         await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет столько денег!')
                     else:
-                        user[0]["Money"] -= shop_data[9][int(product) - 1]["PetPrice"]
+                        user[0]["Money"] -= shop_data[9][int(product) - 1]["Price"]
                         user[1]["Pet"] = product
                         UserAction.save_user(message.from_id, user)
                         await message.answer(f'@id{message.from_id} ({info.first_name}), Вы приобрели себе '
                                              f'{shop_data[9][int(product) - 1]["PetIcon"]} '
                                              f'{shop_data[9][int(product) - 1]["PetName"]} за '
-                                             f'{general.change_number(shop_data[9][int(product) - 1]["PetPrice"])}$')
+                                             f'{general.change_number(shop_data[9][int(product) - 1]["Price"])}$')
+        elif category.lower() == 'мотоциклы':
+            if product is None:
+                for motorcycle in shop_data[10]:
+                    temp_text += f'\n🔸 {motorcycle["ID"]}. {motorcycle["MotoName"]} [{general.change_number(motorcycle["Price"])}$]'
+                await message.answer(f'@id{message.from_id} ({info.first_name}), мотоциклы: {temp_text}\n\n '
+                                     f'❓ Для покупки введите "магазин мотоциклы купить [номер]"')
+            else:
+                if user[1]["Motorcycle"] > 0:
+                    await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас уже есть мотоцикл! Для покупки'
+                                         f', продайте старый: продать мотоцикл!')
+                else:
+                    if user[0]["Money"] < shop_data[10][int(product) - 1]["Price"]:
+                        await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет столько денег!')
+                    else:
+                        user[0]["Money"] -= shop_data[10][int(product) - 1]["Price"]
+                        user[1]["Motorcycle"] = product
+                        UserAction.save_user(message.from_id, user)
+                        await message.answer(f'@id{message.from_id} ({info.first_name}), Вы приобрели себе '
+                                             f'{shop_data[10][int(product) - 1]["MotoName"]} за '
+                                             f'{general.change_number(shop_data[10][int(product) - 1]["Price"])}$')
         else:
             await message.answer(f"@id{message.from_id} ({info.first_name}), проверьте правильность введенных данных!")
 
 
 # Shop transport
 @bot.on.message(payload={"cmd": "cmd_shop_transport_cars"})
+@bot.on.message(payload={"cmd": "cmd_shop_transport_motorcycles"})
 @bot.on.message(payload={"cmd": "cmd_shop_transport_yachts"})
 @bot.on.message(payload={"cmd": "cmd_shop_transport_airplanes"})
 @bot.on.message(payload={"cmd": "cmd_shop_transport_helicopters"})
@@ -660,7 +685,7 @@ async def shop_products_handler(message: Message, info: UsersUserXtrCounters):
         products_category = message.payload.split('{"cmd":"cmd_shop_')[1].split('"}')[0]
         if products_category == 'transport_cars':
             for car in shop_data[0]:
-                temp_text += f'\n🔸 {car["ID"]}. {car["CarName"]} [{general.change_number(car["CarPrice"])}$]'
+                temp_text += f'\n🔸 {car["ID"]}. {car["CarName"]} [{general.change_number(car["Price"])}$]'
             await message.answer(f'@id{message.from_id} ({info.first_name}), машины: {temp_text}\n\n '
                                  f'❓ Для покупки введите "магазин машины купить [номер]"')
         if products_category == 'transport_yachts':
@@ -671,37 +696,37 @@ async def shop_products_handler(message: Message, info: UsersUserXtrCounters):
         if products_category == 'transport_airplanes':
             for airplane in shop_data[2]:
                 temp_text += f'\n🔸 {airplane["ID"]}. {airplane["AirplaneName"]} ' \
-                             f'[{general.change_number(airplane["AirplanePrice"])}$]'
+                             f'[{general.change_number(airplane["Price"])}$]'
             await message.answer(f'@id{message.from_id} ({info.first_name}), самолеты: {temp_text}\n\n '
                                  f'❓ Для покупки введите "магазин самолеты купить [номер]"')
         if products_category == 'transport_helicopters':
             for helicopters in shop_data[3]:
                 temp_text += f'\n🔸 {helicopters["ID"]}. {helicopters["HelicopterName"]} ' \
-                             f'[{general.change_number(helicopters["HelicopterPrice"])}$]'
+                             f'[{general.change_number(helicopters["Price"])}$]'
             await message.answer(f'@id{message.from_id} ({info.first_name}), вертолеты: {temp_text}\n\n '
                                  f'❓ Для покупки введите "магазин вертолеты купить [номер]"')
         if products_category == 'estate_houses':
             for houses in shop_data[4]:
                 temp_text += f'\n🔸 {houses["ID"]}. {houses["HouseName"]} ' \
-                             f'[{general.change_number(houses["HousePrice"])}$]'
+                             f'[{general.change_number(houses["Price"])}$]'
             await message.answer(f'@id{message.from_id} ({info.first_name}), дома: {temp_text}\n\n '
                                  f'❓ Для покупки введите "магазин дома купить [номер]"')
         if products_category == 'estate_apartments':
             for apartments in shop_data[5]:
                 temp_text += f'\n🔸 {apartments["ID"]}. {apartments["ApartmentName"]} ' \
-                             f'[{general.change_number(apartments["ApartmentPrice"])}$]'
+                             f'[{general.change_number(apartments["Price"])}$]'
             await message.answer(f'@id{message.from_id} ({info.first_name}), квартиры: {temp_text}\n\n '
                                  f'❓ Для покупки введите "магазин квартиры купить [номер]"')
         if products_category == 'other_phones':
             for phones in shop_data[6]:
                 temp_text += f'\n🔸 {phones["ID"]}. {phones["PhoneName"]} ' \
-                             f'[{general.change_number(phones["PhonePrice"])}$]'
+                             f'[{general.change_number(phones["Price"])}$]'
             await message.answer(f'@id{message.from_id} ({info.first_name}), телефоны: {temp_text}\n\n '
                                  f'❓ Для покупки введите "магазин телефоны купить [номер]"')
         if products_category == 'other_farms':
             for farms in MainData.get_data("farms"):
                 temp_text += f'\n🔸 {farms["ID"]}. {farms["FarmName"]} - {farms["FarmBTCPerHour"]} ₿/час ' \
-                             f'[{general.change_number(farms["FarmPrice"])}$]'
+                             f'[{general.change_number(farms["Price"])}$]'
             await message.answer(f'@id{message.from_id} ({info.first_name}), фермы: {temp_text}\n\n '
                                  f'❓ Для покупки введите "магазин фермы купить [номер]"')
         if products_category == 'other_businesses':
@@ -713,9 +738,14 @@ async def shop_products_handler(message: Message, info: UsersUserXtrCounters):
         if products_category == 'other_pets':
             for pets in shop_data[9]:
                 temp_text += f'\n🔸 {pets["ID"]}. {pets["PetIcon"]} {pets["PetName"]} ' \
-                             f'[{general.change_number(pets["PetPrice"])}$]'
+                             f'[{general.change_number(pets["Price"])}$]'
             await message.answer(f'@id{message.from_id} ({info.first_name}), питомцы: {temp_text}\n\n '
                                  f'❓ Для покупки введите "магазин питомцы купить [номер]"')
+        if products_category == 'transport_motorcycles':
+            for motorcycle in shop_data[10]:
+                temp_text += f'\n🔸 {motorcycle["ID"]}. {motorcycle["MotoName"]} [{general.change_number(motorcycle["Price"])}$]'
+            await message.answer(f'@id{message.from_id} ({info.first_name}), мотоциклы: {temp_text}\n\n '
+                                 f'❓ Для покупки введите "магазин мотоциклы купить [номер]"')
 
 
 @bot.on.message(text=["Бонус", "бонус"])
@@ -968,6 +998,7 @@ async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, pro
                                  f"продать [категория]\n\n"
                                  f"Категории:\n"
                                  f"⠀🚗 машина\n"
+                                 f"⠀🏍 мотоцикл"
                                  f"⠀🛥 яхта\n"
                                  f"⠀🛩 самолет\n"
                                  f"⠀🚁 вертолет\n"
@@ -984,9 +1015,9 @@ async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, pro
                                      f'используйте магазин.')
             else:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
-                                     f'{shop_data[0][user[1]["Car"]]["CarName"]} за '
-                                     f'{general.change_number(math.trunc(shop_data[0][user[1]["Car"]]["CarPrice"]/2))}$')
-                user[0]["Money"] += math.trunc(shop_data[0][user[1]["Car"] - 1]["CarPrice"]/2)
+                                     f'{shop_data[0][user[1]["Car"] - 1]["CarName"]} за '
+                                     f'{general.change_number(math.trunc(shop_data[0][user[1]["Car"] - 1]["Price"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[0][user[1]["Car"] - 1]["Price"]/2)
                 user[1]["Car"] = 0
                 UserAction.save_user(message.from_id, user)
         elif property_name == 'яхта':
@@ -995,9 +1026,9 @@ async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, pro
                                      f'используйте магазин.')
             else:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
-                                     f'{shop_data[1][user[1]["Yacht"]]["YachtName"]} за '
-                                     f'{general.change_number(math.trunc(shop_data[1][user[1]["Yacht"]]["YachtPrice"]/2))}$')
-                user[0]["Money"] += math.trunc(shop_data[1][user[1]["Yacht"] - 1]["YachtPrice"]/2)
+                                     f'{shop_data[1][user[1]["Yacht"] - 1]["YachtName"]} за '
+                                     f'{general.change_number(math.trunc(shop_data[1][user[1]["Yacht"] - 1]["Price"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[1][user[1]["Yacht"] - 1]["Price"]/2)
                 user[1]["Yacht"] = 0
                 UserAction.save_user(message.from_id, user)
         elif property_name == 'самолет':
@@ -1006,9 +1037,9 @@ async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, pro
                                      f'используйте магазин.')
             else:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
-                                     f'{shop_data[2][user[1]["Airplane"]]["AirplaneName"]} за '
-                                     f'{general.change_number(math.trunc(shop_data[2][user[1]["Airplane"]]["AirplanePrice"]/2))}$')
-                user[0]["Money"] += math.trunc(shop_data[2][user[1]["Airplane"] - 1]["AirplanePrice"]/2)
+                                     f'{shop_data[2][user[1]["Airplane"] - 1]["AirplaneName"]} за '
+                                     f'{general.change_number(math.trunc(shop_data[2][user[1]["Airplane"] - 1]["Price"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[2][user[1]["Airplane"] - 1]["Price"]/2)
                 user[1]["Airplane"] = 0
                 UserAction.save_user(message.from_id, user)
         elif property_name == 'вертолет':
@@ -1017,9 +1048,9 @@ async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, pro
                                      f'используйте магазин.')
             else:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
-                                     f'{shop_data[3][user[1]["Helicopter"]]["HelicopterName"]} за '
-                                     f'{general.change_number(math.trunc(shop_data[3][user[1]["Helicopter"]]["HelicopterPrice"]/2))}$')
-                user[0]["Money"] += math.trunc(shop_data[3][user[1]["Helicopter"] - 1]["HelicopterPrice"]/2)
+                                     f'{shop_data[3][user[1]["Helicopter"] - 1]["HelicopterName"]} за '
+                                     f'{general.change_number(math.trunc(shop_data[3][user[1]["Helicopter"] - 1]["Price"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[3][user[1]["Helicopter"] - 1]["Price"]/2)
                 user[1]["Helicopter"] = 0
                 UserAction.save_user(message.from_id, user)
         elif property_name == 'дом':
@@ -1029,8 +1060,8 @@ async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, pro
             else:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
                                      f'{shop_data[4][user[1]["House"] - 1]["HouseName"]} за '
-                                     f'{general.change_number(math.trunc(shop_data[4][user[1]["House"] - 1]["HousePrice"]/2))}$')
-                user[0]["Money"] += math.trunc(shop_data[4][user[1]["House"] - 1]["HousePrice"]/2)
+                                     f'{general.change_number(math.trunc(shop_data[4][user[1]["House"] - 1]["Price"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[4][user[1]["House"] - 1]["Price"]/2)
                 user[1]["House"] = 0
                 UserAction.save_user(message.from_id, user)
         elif property_name == 'квартира':
@@ -1039,9 +1070,9 @@ async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, pro
                                      f'используйте магазин.')
             else:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
-                                     f'{shop_data[5][user[1]["Apartment"]]["ApartmentName"]} за '
-                                     f'{general.change_number(math.trunc(shop_data[5][user[1]["Apartment"]]["ApartmentPrice"]/2))}$')
-                user[0]["Money"] += math.trunc(shop_data[5][user[1]["Apartment"] - 1]["ApartmentPrice"]/2)
+                                     f'{shop_data[5][user[1]["Apartment"] - 1]["ApartmentName"]} за '
+                                     f'{general.change_number(math.trunc(shop_data[5][user[1]["Apartment"] - 1]["Price"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[5][user[1]["Apartment"] - 1]["Price"]/2)
                 user[1]["Apartment"] = 0
                 UserAction.save_user(message.from_id, user)
         elif property_name == 'телефон':
@@ -1050,11 +1081,26 @@ async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, pro
                                      f'используйте магазин.')
             else:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
-                                     f'{shop_data[6][user[1]["Phone"]]["PhoneName"]} за '
-                                     f'{general.change_number(math.trunc(shop_data[6][user[1]["Phone"]]["PhonePrice"]/2))}$')
-                user[0]["Money"] += math.trunc(shop_data[6][user[1]["Phone"] - 1]["PhonePrice"]/2)
+                                     f'{shop_data[6][user[1]["Phone"] - 1]["PhoneName"]} за '
+                                     f'{general.change_number(math.trunc(shop_data[6][user[1]["Phone"] - 1]["Price"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[6][user[1]["Phone"] - 1]["Price"]/2)
                 user[1]["Phone"] = 0
                 UserAction.save_user(message.from_id, user)
+        elif property_name == 'ферма':
+            if count is None or count == 0:
+                await message.answer(f'@id{message.from_id} ({info.first_name}), для продажи ферм используйте: '
+                                     f'продать ферма [кол-во]')
+            else:
+                if user[1]["Farms"] < count:
+                    await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет столько ферм! Для '
+                                         f'покупки используйте магазин.')
+                else:
+                    await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
+                                         f'{general.change_number(count)} ферм {shop_data[7][user[1]["FarmsType"] - 1]["FarmName"]} за '
+                                         f'{general.change_number(math.trunc(shop_data[7][user[1]["FarmsType"] - 1]["Price"]/2)*count)}$')
+                    user[0]["Money"] += math.trunc(shop_data[7][user[1]["FarmsType"] - 1]["Price"]/2)*count
+                    user[1]["Farms"] -= count
+                    UserAction.save_user(message.from_id, user)
         elif property_name == 'рейтинг':
             if count is None or count == 0:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), для продажи рейтинга используйте: '
@@ -1076,9 +1122,9 @@ async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, pro
                                      f'используйте магазин.')
             else:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
-                                     f'{shop_data[8][user[1]["Business"]]["BusinessName"]} за '
-                                     f'{general.change_number(math.trunc(shop_data[8][user[1]["Business"]]["BusinessPrice"]/2))}$')
-                user[0]["Money"] += math.trunc(shop_data[8][user[1]["Business"] - 1]["BusinessPrice"]/2)
+                                     f'{shop_data[8][user[1]["Business"] - 1]["BusinessName"]} за '
+                                     f'{general.change_number(math.trunc(shop_data[8][user[1]["Business"] - 1]["Price"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[8][user[1]["Business"] - 1]["Price"]/2)
                 user[1]["Business"] = 0
                 UserAction.save_user(message.from_id, user)
         elif property_name == 'биткоин':
@@ -1102,10 +1148,21 @@ async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, pro
                                      f'используйте магазин.')
             else:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
-                                     f'{shop_data[9][user[1]["Pet"]]["PetName"]} за '
-                                     f'{general.change_number(math.trunc(shop_data[9][user[1]["Pet"]]["PetPrice"]/2))}$')
-                user[0]["Money"] += math.trunc(shop_data[9][user[1]["Pet"] - 1]["PetPrice"]/2)
+                                     f'{shop_data[9][user[1]["Pet"] - 1]["PetName"]} за '
+                                     f'{general.change_number(math.trunc(shop_data[9][user[1]["Pet"] - 1]["Price"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[9][user[1]["Pet"] - 1]["Price"]/2)
                 user[1]["Pet"] = 0
+                UserAction.save_user(message.from_id, user)
+        elif property_name == 'мотоцикл':
+            if user[1]["Motorcycle"] == 0:
+                await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет мотоцикла! Для покупки '
+                                     f'используйте магазин.')
+            else:
+                await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
+                                     f'{shop_data[10][user[1]["Motorcycle"] - 1]["MotoName"]} за '
+                                     f'{general.change_number(math.trunc(shop_data[10][user[1]["Motorcycle"] - 1]["Price"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[10][user[1]["Motorcycle"] - 1]["Price"]/2)
+                user[1]["Motorcycle"] = 0
                 UserAction.save_user(message.from_id, user)
         else:
             await message.answer(f'@id{message.from_id} ({info.first_name}), проверьте правильность введенных данных!')
@@ -1555,22 +1612,28 @@ async def add_property_handler(message: Message, info: UsersUserXtrCounters, pro
         return True
     elif property_type is None:
         await message.answer(f"@id{message.from_id} ({info.first_name}), используйте 'add_property [тип]'")
-    # elif not general.isint(price):
-    #     await message.answer(f"@id{message.from_id} ({info.first_name}), неверно указана цена!")
     elif property_type == "машина":
         if name is None or price is None:
             await message.answer(f"@id{message.from_id} ({info.first_name}), используйте 'add_property машина ["
                                  f"название] [цена]'")
         else:
-            MainData.add_static_property("cars", CarName=name, CarPrice=price)
+            MainData.add_static_property("cars", CarName=name, Price=price)
             await message.answer(f"@id{message.from_id} ({info.first_name}), Вы успешно добавили новый автомобиль "
+                                 f"{name} с ценой {general.change_number(price)}$")
+    elif property_type == "мотоцикл":
+        if name is None or price is None:
+            await message.answer(f"@id{message.from_id} ({info.first_name}), используйте 'add_property мотоцикл ["
+                                 f"название] [цена]'")
+        else:
+            MainData.add_static_property("motorcycles", MotoName=name, Price=price)
+            await message.answer(f"@id{message.from_id} ({info.first_name}), Вы успешно добавили новый мотоцикл "
                                  f"{name} с ценой {general.change_number(price)}$")
     elif property_type == "яхта":
         if name is None or price is None:
             await message.answer(f"@id{message.from_id} ({info.first_name}), используйте 'add_property яхта ["
                                  f"название] [цена]'")
         else:
-            MainData.add_static_property("yachts", YachtName=name, YachtPrice=price)
+            MainData.add_static_property("yachts", YachtName=name, Price=price)
             await message.answer(f"@id{message.from_id} ({info.first_name}), Вы успешно добавили новую яхту "
                                  f"{name} с ценой {general.change_number(price)}$")
     elif property_type == "самолет":
@@ -1578,7 +1641,7 @@ async def add_property_handler(message: Message, info: UsersUserXtrCounters, pro
             await message.answer(f"@id{message.from_id} ({info.first_name}), используйте 'add_property самолет ["
                                  f"название] [цена]'")
         else:
-            MainData.add_static_property("airplanes", AirplaneName=name, AirplanePrice=price)
+            MainData.add_static_property("airplanes", AirplaneName=name, Price=price)
             await message.answer(f"@id{message.from_id} ({info.first_name}), Вы успешно добавили новый самолет "
                                  f"{name} с ценой {general.change_number(price)}$")
     elif property_type == "вертолет":
@@ -1586,7 +1649,7 @@ async def add_property_handler(message: Message, info: UsersUserXtrCounters, pro
             await message.answer(f"@id{message.from_id} ({info.first_name}), используйте 'add_property вертолет ["
                                  f"название] [цена]'")
         else:
-            MainData.add_static_property("helicopters", HelicopterName=name, HelicopterPrice=price)
+            MainData.add_static_property("helicopters", HelicopterName=name, Price=price)
             await message.answer(f"@id{message.from_id} ({info.first_name}), Вы успешно добавили новый вертолет "
                                  f"{name} с ценой {general.change_number(price)}$")
     elif property_type == "дом":
@@ -1594,7 +1657,7 @@ async def add_property_handler(message: Message, info: UsersUserXtrCounters, pro
             await message.answer(f"@id{message.from_id} ({info.first_name}), используйте 'add_property дом ["
                                  f"название] [цена]'")
         else:
-            MainData.add_static_property("houses", HouseName=name, HousePrice=price)
+            MainData.add_static_property("houses", HouseName=name, Price=price)
             await message.answer(f"@id{message.from_id} ({info.first_name}), Вы успешно добавили новый дом "
                                  f"{name} с ценой {general.change_number(price)}$")
     elif property_type == "квартира":
@@ -1602,7 +1665,7 @@ async def add_property_handler(message: Message, info: UsersUserXtrCounters, pro
             await message.answer(f"@id{message.from_id} ({info.first_name}), используйте 'add_property квартира ["
                                  f"название] [цена]'")
         else:
-            MainData.add_static_property("apartments", ApartmentName=name, ApartmentPrice=price)
+            MainData.add_static_property("apartments", ApartmentName=name, Price=price)
             await message.answer(f"@id{message.from_id} ({info.first_name}), Вы успешно добавили новую квартиру "
                                  f"{name} с ценой {general.change_number(price)}$")
     elif property_type == "бизнес":
@@ -1610,7 +1673,7 @@ async def add_property_handler(message: Message, info: UsersUserXtrCounters, pro
             await message.answer(f"@id{message.from_id} ({info.first_name}), используйте 'add_property бизнес ["
                                  f"название] [цена] [кол-во рабочих]'")
         else:
-            MainData.add_business(BusinessName=name, BusinessPrice=price, BusinessWorkers=param1)
+            MainData.add_business(BusinessName=name, Price=price, BusinessWorkers=param1)
             await message.answer(f"@id{message.from_id} ({info.first_name}), Вы успешно добавили новый бизнес "
                                  f"{name} с ценой {general.change_number(price)}$ и максимальным количеством рабочих "
                                  f"{param1}")
@@ -1619,7 +1682,7 @@ async def add_property_handler(message: Message, info: UsersUserXtrCounters, pro
             await message.answer(f"@id{message.from_id} ({info.first_name}), используйте 'add_property питомец ["
                                  f"название] [цена] [мин кол-во добычи] [макс кол-во добычи] [иконка]'")
         else:
-            MainData.add_pet(PetName=name, PetPrice=price, PetMinMoney=param1, PetMaxMoney=param2, PetIcon=param3)
+            MainData.add_pet(PetName=name, Price=price, PetMinMoney=param1, PetMaxMoney=param2, PetIcon=param3)
             await message.answer(f"@id{message.from_id} ({info.first_name}), Вы успешно добавили нового питомца "
                                  f"{name} с ценой {general.change_number(price)}$, минимальной добычей {param1}, "
                                  f"максимальной добычей {param2}"
@@ -1629,7 +1692,7 @@ async def add_property_handler(message: Message, info: UsersUserXtrCounters, pro
             await message.answer(f"@id{message.from_id} ({info.first_name}), используйте 'add_property ферма ["
                                  f"название] [цена] [кол-во биткоинов в час]'")
         else:
-            MainData.add_farm(FarmName=name, FarmPrice=price, FarmBTCPerHour=param1)
+            MainData.add_farm(FarmName=name, Price=price, FarmBTCPerHour=param1)
             await message.answer(f"@id{message.from_id} ({info.first_name}), Вы успешно добавили новую ферму "
                                  f"{name} с ценой {general.change_number(price)}$ и количеством биткоинов в час "
                                  f"{param1}")
@@ -1638,7 +1701,7 @@ async def add_property_handler(message: Message, info: UsersUserXtrCounters, pro
             await message.answer(f"@id{message.from_id} ({info.first_name}), используйте 'add_property телефон ["
                                  f"название] [цена]'")
         else:
-            MainData.add_static_property("phones", PhoneName=name, PhonePrice=price)
+            MainData.add_static_property("phones", PhoneName=name, Price=price)
             await message.answer(f"@id{message.from_id} ({info.first_name}), Вы успешно добавили новый телефон "
                                  f"{name} с ценой {general.change_number(price)}$")
     else:
