@@ -10,8 +10,8 @@ config.read("config/mysql.ini")
 class MySQL:
     # Connection
     try:
-        connection = pymysql.connect(config["DATA"]["SQL_HOST"], config["DATA"]["SQL_USER"],
-                                     config["DATA"]["SQL_PASS"], config["DATA"]["SQL_DB"])
+        connection = pymysql.connect(host=config["DATA"]["SQL_HOST"], user=config["DATA"]["SQL_USER"],
+                                     password=config["DATA"]["SQL_PASS"], database=config["DATA"]["SQL_DB"])
         print(f'MySQL success connected!')
     except MySQLError as e:
         logging.log(logging.FATAL, e)
@@ -22,8 +22,12 @@ class UserAction(MySQL):
     def create_user(self, vk_id, name):
         with self.connection.cursor() as cursor:
             for table in config.items("USERS_TABLES"):
-                sql = f"INSERT INTO %s (VK_ID, %s) VALUES (%s, %s)"
-                cursor.execute(sql % (table[0], config["USERS_COLUMNS"]["NAME"], vk_id, name))
+                if table[0] == config["USERS_TABLES"]["USERS"]:
+                    sql = f"INSERT INTO %s (VK_ID, %s) VALUES (%s, '%s')"
+                    cursor.execute(sql % (table[0], config["USERS_COLUMNS"]["NAME"], vk_id, name))
+                else:
+                    sql = f"INSERT INTO %s (VK_ID) VALUES (%s)"
+                    cursor.execute(sql % (table[0], vk_id))
         self.connection.commit()
 
     # Function getting user
@@ -150,3 +154,13 @@ class MainData(MySQL):
             logging.debug(f'New farm "{kwargs[args_list[0]]} - price: {kwargs[args_list[1]]}$, btc per hour: '
                           f'{kwargs[args_list[2]]}" added!')
         self.connection.commit()
+
+    def get_settings(self):
+        with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            sql = "SELECT * FROM settings"
+            cursor.execute(sql)
+            result = cursor.fetchall()
+            if len(result) == 0:
+                return False
+            else:
+                return result

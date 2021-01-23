@@ -1,3 +1,7 @@
+import math
+
+import requests
+
 import classes.mysql
 import pymysql
 
@@ -28,4 +32,11 @@ class Timers:
                     cursor.execute(sql % (10*user["Farms"], user["VK_ID"]))
                 elif user["FarmsType"] == 3:
                     cursor.execute(sql % (100*user["Farms"], user["VK_ID"]))
+
+            # Curse btc/usd
+            bit = requests.get('https://api.cryptonator.com/api/ticker/btc-usd',
+                               headers={'User-Agent': 'Mozilla/5.0 (Platform; Security; OS-or-CPU; Localization; rv:1.4) '
+                                                      'Gecko/20030624 Netscape/7.1 (ax)'}).json()
+            sql = f"UPDATE settings SET BTC_USD_Curse=%s"
+            cursor.execute(sql % math.trunc(float(bit["ticker"]["price"])))
         MySQL.connection.commit()
