@@ -64,6 +64,30 @@ MAIN_KEYBOARD = Keyboard(one_time=False, inline=False).schema(
     ]
 ).get_json()
 
+SHOP_KEYBOARD = Keyboard(one_time=False, inline=False).schema(
+    [
+        [
+            {"label": "🚗 Машины", "type": "text", "payload": {"cmd": "cmd_shop_transport_cars"}, "color": "secondary"},
+            {"label": "🛥 Яхты", "type": "text", "payload": {"cmd": "cmd_shop_transport_yachts"}, "color": "secondary"},
+            {"label": "🛩 Самолеты", "type": "text", "payload": {"cmd": "cmd_shop_transport_airplanes"}, "color": "secondary"},
+            {"label": "🚁 Вертолеты", "type": "text", "payload": {"cmd": "cmd_shop_transport_helicopters"}, "color": "secondary"}
+        ],
+        [
+            {"label": "🏠 Дома", "type": "text", "payload": {"cmd": "cmd_shop_estate_houses"}, "color": "secondary"},
+            {"label": "🌇 Квартиры", "type": "text", "payload": {"cmd": "cmd_shop_estate_apartments"}, "color": "secondary"}
+        ],
+        [
+            {"label": "📱 Телефоны", "type": "text", "payload": {"cmd": "cmd_shop_other_phones"}, "color": "secondary"},
+            {"label": "🔋 Фермы", "type": "text", "payload": {"cmd": "cmd_shop_other_farms"}, "color": "secondary"},
+            {"label": "💼 Бизнесы", "type": "text", "payload": {"cmd": "cmd_shop_other_businesses"}, "color": "secondary"},
+            {"label": "🐸 Питомцы", "type": "text", "payload": {"cmd": "cmd_shop_other_pets"}, "color": "secondary"}
+        ],
+        [
+            {"label": "◀ В главное меню", "type": "text", "payload": {"cmd": "cmd_mainmenu"}, "color": "positive"}
+        ]
+    ]
+).get_json()
+
 OTHER_KEYBOARD = Keyboard(one_time=False, inline=False).schema(
     [
         [
@@ -371,7 +395,7 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
                                  f'⠀🌐 Биткоин [кол-во]⠀⠀{general.change_number(MainData.get_settings()[0]["BTC_USD_Curse"])}$/ед.\n'
                                  f'⠀🐸 Питомцы'
                                  f'\n🔎 Для просмотра категории используйте "магазин [категория]".\n'
-                                 f'🔎 Для покупки используйте "магазин [категория] купить [номер товара]".\n')
+                                 f'🔎 Для покупки используйте "магазин [категория] купить [номер товара]".\n', keyboard=SHOP_KEYBOARD)
         elif category.lower() == 'машины':
             if product is None:
                 for car in shop_data[0]:
@@ -611,6 +635,89 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
             await message.answer(f"@id{message.from_id} ({info.first_name}), проверьте правильность введенных данных!")
 
 
+# Shop transport
+@bot.on.message(payload={"cmd": "cmd_shop_transport_cars"})
+@bot.on.message(payload={"cmd": "cmd_shop_transport_yachts"})
+@bot.on.message(payload={"cmd": "cmd_shop_transport_airplanes"})
+@bot.on.message(payload={"cmd": "cmd_shop_transport_helicopters"})
+# Shop estate
+@bot.on.message(payload={"cmd": "cmd_shop_estate_houses"})
+@bot.on.message(payload={"cmd": "cmd_shop_estate_apartments"})
+# Shop other
+@bot.on.message(payload={"cmd": "cmd_shop_other_phones"})
+@bot.on.message(payload={"cmd": "cmd_shop_other_farms"})
+@bot.on.message(payload={"cmd": "cmd_shop_other_businesses"})
+@bot.on.message(payload={"cmd": "cmd_shop_other_pets"})
+async def shop_products_handler(message: Message, info: UsersUserXtrCounters):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: {info.first_name}\n"
+                             f"Ваш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        shop_data = MainData.get_shop_data()
+        temp_text = ''
+        products_category = message.payload.split('{"cmd":"cmd_shop_')[1].split('"}')[0]
+        if products_category == 'transport_cars':
+            for car in shop_data[0]:
+                temp_text += f'\n🔸 {car["ID"]}. {car["CarName"]} [{general.change_number(car["CarPrice"])}$]'
+            await message.answer(f'@id{message.from_id} ({info.first_name}), машины: {temp_text}\n\n '
+                                 f'❓ Для покупки введите "магазин машины купить [номер]"')
+        if products_category == 'transport_yachts':
+            for yacht in shop_data[1]:
+                temp_text += f'\n🔸 {yacht["ID"]}. {yacht["YachtName"]} [{general.change_number(yacht["YachtPrice"])}$]'
+            await message.answer(f'@id{message.from_id} ({info.first_name}), яхты: {temp_text}\n\n '
+                                 f'❓ Для покупки введите "магазин яхты купить [номер]"')
+        if products_category == 'transport_airplanes':
+            for airplane in shop_data[2]:
+                temp_text += f'\n🔸 {airplane["ID"]}. {airplane["AirplaneName"]} ' \
+                             f'[{general.change_number(airplane["AirplanePrice"])}$]'
+            await message.answer(f'@id{message.from_id} ({info.first_name}), самолеты: {temp_text}\n\n '
+                                 f'❓ Для покупки введите "магазин самолеты купить [номер]"')
+        if products_category == 'transport_helicopters':
+            for helicopters in shop_data[3]:
+                temp_text += f'\n🔸 {helicopters["ID"]}. {helicopters["HelicopterName"]} ' \
+                             f'[{general.change_number(helicopters["HelicopterPrice"])}$]'
+            await message.answer(f'@id{message.from_id} ({info.first_name}), вертолеты: {temp_text}\n\n '
+                                 f'❓ Для покупки введите "магазин вертолеты купить [номер]"')
+        if products_category == 'estate_houses':
+            for houses in shop_data[4]:
+                temp_text += f'\n🔸 {houses["ID"]}. {houses["HouseName"]} ' \
+                             f'[{general.change_number(houses["HousePrice"])}$]'
+            await message.answer(f'@id{message.from_id} ({info.first_name}), дома: {temp_text}\n\n '
+                                 f'❓ Для покупки введите "магазин дома купить [номер]"')
+        if products_category == 'estate_apartments':
+            for apartments in shop_data[5]:
+                temp_text += f'\n🔸 {apartments["ID"]}. {apartments["ApartmentName"]} ' \
+                             f'[{general.change_number(apartments["ApartmentPrice"])}$]'
+            await message.answer(f'@id{message.from_id} ({info.first_name}), квартиры: {temp_text}\n\n '
+                                 f'❓ Для покупки введите "магазин квартиры купить [номер]"')
+        if products_category == 'other_phones':
+            for phones in shop_data[6]:
+                temp_text += f'\n🔸 {phones["ID"]}. {phones["PhoneName"]} ' \
+                             f'[{general.change_number(phones["PhonePrice"])}$]'
+            await message.answer(f'@id{message.from_id} ({info.first_name}), телефоны: {temp_text}\n\n '
+                                 f'❓ Для покупки введите "магазин телефоны купить [номер]"')
+        if products_category == 'other_farms':
+            for farms in MainData.get_data("farms"):
+                temp_text += f'\n🔸 {farms["ID"]}. {farms["FarmName"]} - {farms["FarmBTCPerHour"]} ₿/час ' \
+                             f'[{general.change_number(farms["FarmPrice"])}$]'
+            await message.answer(f'@id{message.from_id} ({info.first_name}), фермы: {temp_text}\n\n '
+                                 f'❓ Для покупки введите "магазин фермы купить [номер]"')
+        if products_category == 'other_businesses':
+            for businesses in shop_data[8]:
+                temp_text += f'\n🔸 {businesses["ID"]}. {businesses["BusinessName"]} ' \
+                             f'[{general.change_number(businesses["BusinessPrice"])}$]'
+            await message.answer(f'@id{message.from_id} ({info.first_name}), бизнесы: {temp_text}\n\n '
+                                 f'❓ Для покупки введите "магазин бизнесы купить [номер]"')
+        if products_category == 'other_pets':
+            for pets in shop_data[9]:
+                temp_text += f'\n🔸 {pets["ID"]}. {pets["PetIcon"]} {pets["PetName"]} ' \
+                             f'[{general.change_number(pets["PetPrice"])}$]'
+            await message.answer(f'@id{message.from_id} ({info.first_name}), питомцы: {temp_text}\n\n '
+                                 f'❓ Для покупки введите "магазин питомцы купить [номер]"')
+
+
 @bot.on.message(text=["Бонус", "бонус"])
 @bot.on.message(payload={"cmd": "cmd_bonus"})
 async def bonus_handler(message: Message, info: UsersUserXtrCounters):
@@ -844,8 +951,8 @@ async def course_handler(message: Message, info: UsersUserXtrCounters):
 
 
 @bot.on.message(text=["Продать", "продать"])
-@bot.on.message(text=["Продать <property>", "продать <property>"])
-@bot.on.message(text=["Продать <property> <count:int>", "продать <property> <count:int>"])
+@bot.on.message(text=["Продать <property_name>", "продать <property_name>"])
+@bot.on.message(text=["Продать <property_name> <count:int>", "продать <property_name> <count:int>"])
 async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, property_name: Optional[str] = None,
                                count: Optional[int] = None):
     if not UserAction.get_user(message.from_id):
@@ -876,78 +983,78 @@ async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, pro
                 await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет машины! Для покупки '
                                      f'используйте магазин.')
             else:
-                user[0]["Money"] += math.trunc(shop_data[0][user[1]["Car"] - 1]["CarPrice"]/2)
-                user[1]["Car"] = 0
-                UserAction.save_user(message.from_id, user)
                 await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
                                      f'{shop_data[0][user[1]["Car"]]["CarName"]} за '
                                      f'{general.change_number(math.trunc(shop_data[0][user[1]["Car"]]["CarPrice"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[0][user[1]["Car"] - 1]["CarPrice"]/2)
+                user[1]["Car"] = 0
+                UserAction.save_user(message.from_id, user)
         elif property_name == 'яхта':
             if user[1]["Yacht"] == 0:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет яхты! Для покупки '
                                      f'используйте магазин.')
             else:
-                user[0]["Money"] += math.trunc(shop_data[1][user[1]["Yacht"] - 1]["YachtPrice"]/2)
-                user[1]["Yacht"] = 0
-                UserAction.save_user(message.from_id, user)
                 await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
                                      f'{shop_data[1][user[1]["Yacht"]]["YachtName"]} за '
                                      f'{general.change_number(math.trunc(shop_data[1][user[1]["Yacht"]]["YachtPrice"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[1][user[1]["Yacht"] - 1]["YachtPrice"]/2)
+                user[1]["Yacht"] = 0
+                UserAction.save_user(message.from_id, user)
         elif property_name == 'самолет':
             if user[1]["Airplane"] == 0:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет самолета! Для покупки '
                                      f'используйте магазин.')
             else:
-                user[0]["Money"] += math.trunc(shop_data[2][user[1]["Airplane"] - 1]["AirplanePrice"]/2)
-                user[1]["Airplane"] = 0
-                UserAction.save_user(message.from_id, user)
                 await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
                                      f'{shop_data[2][user[1]["Airplane"]]["AirplaneName"]} за '
                                      f'{general.change_number(math.trunc(shop_data[2][user[1]["Airplane"]]["AirplanePrice"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[2][user[1]["Airplane"] - 1]["AirplanePrice"]/2)
+                user[1]["Airplane"] = 0
+                UserAction.save_user(message.from_id, user)
         elif property_name == 'вертолет':
             if user[1]["Helicopter"] == 0:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет вертолета! Для покупки '
                                      f'используйте магазин.')
             else:
-                user[0]["Money"] += math.trunc(shop_data[3][user[1]["Helicopter"] - 1]["HelicopterPrice"]/2)
-                user[1]["Helicopter"] = 0
-                UserAction.save_user(message.from_id, user)
                 await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
                                      f'{shop_data[3][user[1]["Helicopter"]]["HelicopterName"]} за '
                                      f'{general.change_number(math.trunc(shop_data[3][user[1]["Helicopter"]]["HelicopterPrice"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[3][user[1]["Helicopter"] - 1]["HelicopterPrice"]/2)
+                user[1]["Helicopter"] = 0
+                UserAction.save_user(message.from_id, user)
         elif property_name == 'дом':
             if user[1]["House"] == 0:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет дома! Для покупки '
                                      f'используйте магазин.')
             else:
+                await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
+                                     f'{shop_data[4][user[1]["House"] - 1]["HouseName"]} за '
+                                     f'{general.change_number(math.trunc(shop_data[4][user[1]["House"] - 1]["HousePrice"]/2))}$')
                 user[0]["Money"] += math.trunc(shop_data[4][user[1]["House"] - 1]["HousePrice"]/2)
                 user[1]["House"] = 0
                 UserAction.save_user(message.from_id, user)
-                await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
-                                     f'{shop_data[4][user[1]["House"]]["HouseName"]} за '
-                                     f'{general.change_number(math.trunc(shop_data[4][user[1]["House"]]["HousePrice"]/2))}$')
         elif property_name == 'квартира':
             if user[1]["Apartment"] == 0:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет квартиры! Для покупки '
                                      f'используйте магазин.')
             else:
-                user[0]["Money"] += math.trunc(shop_data[5][user[1]["Apartment"] - 1]["ApartmentPrice"]/2)
-                user[1]["Apartment"] = 0
-                UserAction.save_user(message.from_id, user)
                 await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
                                      f'{shop_data[5][user[1]["Apartment"]]["ApartmentName"]} за '
                                      f'{general.change_number(math.trunc(shop_data[5][user[1]["Apartment"]]["ApartmentPrice"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[5][user[1]["Apartment"] - 1]["ApartmentPrice"]/2)
+                user[1]["Apartment"] = 0
+                UserAction.save_user(message.from_id, user)
         elif property_name == 'телефон':
             if user[1]["Phone"] == 0:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет телефона! Для покупки '
                                      f'используйте магазин.')
             else:
-                user[0]["Money"] += math.trunc(shop_data[6][user[1]["Phone"] - 1]["PhonePrice"]/2)
-                user[1]["Phone"] = 0
-                UserAction.save_user(message.from_id, user)
                 await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
                                      f'{shop_data[6][user[1]["Phone"]]["PhoneName"]} за '
                                      f'{general.change_number(math.trunc(shop_data[6][user[1]["Phone"]]["PhonePrice"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[6][user[1]["Phone"] - 1]["PhonePrice"]/2)
+                user[1]["Phone"] = 0
+                UserAction.save_user(message.from_id, user)
         elif property_name == 'рейтинг':
             if count is None or count == 0:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), для продажи рейтинга используйте: '
@@ -957,23 +1064,23 @@ async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, pro
                     await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет столько рейтинга! Для '
                                          f'покупки используйте магазин.')
                 else:
-                    user[0]["Money"] += math.trunc(MainData.get_settings()[0]["Rating_Price"]/2)*count
-                    user[0]["Rating"] -= count
-                    UserAction.save_user(message.from_id, user)
                     await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
                                          f'{general.change_number(count)} рейтинга за '
                                          f'{general.change_number(math.trunc(MainData.get_settings()[0]["Rating_Price"]/2)*count)}$')
+                    user[0]["Money"] += math.trunc(MainData.get_settings()[0]["Rating_Price"]/2)*count
+                    user[0]["Rating"] -= count
+                    UserAction.save_user(message.from_id, user)
         elif property_name == 'бизнес':
             if user[1]["Business"] == 0:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет бизнеса! Для покупки '
                                      f'используйте магазин.')
             else:
-                user[0]["Money"] += math.trunc(shop_data[8][user[1]["Business"] - 1]["BusinessPrice"]/2)
-                user[1]["Business"] = 0
-                UserAction.save_user(message.from_id, user)
                 await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
                                      f'{shop_data[8][user[1]["Business"]]["BusinessName"]} за '
                                      f'{general.change_number(math.trunc(shop_data[8][user[1]["Business"]]["BusinessPrice"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[8][user[1]["Business"] - 1]["BusinessPrice"]/2)
+                user[1]["Business"] = 0
+                UserAction.save_user(message.from_id, user)
         elif property_name == 'биткоин':
             if count is None or count == 0:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), для продажи биткоина используйте: '
@@ -983,23 +1090,23 @@ async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, pro
                     await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет столько биткоинов! Для '
                                          f'покупки используйте магазин, или используйте фермы')
                 else:
-                    user[0]["Money"] += math.trunc(MainData.get_settings()[0]["BTC_USD_Curse"]/2)*count
-                    user[0]["BTC"] -= count
-                    UserAction.save_user(message.from_id, user)
                     await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
                                          f'{general.change_number(count)} биткоина(-ов) за '
                                          f'{general.change_number(math.trunc(MainData.get_settings()[0]["BTC_USD_Curse"]/2)*count)}$')
+                    user[0]["Money"] += math.trunc(MainData.get_settings()[0]["BTC_USD_Curse"]/2)*count
+                    user[0]["BTC"] -= count
+                    UserAction.save_user(message.from_id, user)
         elif property_name == 'питомец':
             if user[1]["Pet"] == 0:
                 await message.answer(f'@id{message.from_id} ({info.first_name}), у Вас нет питомца! Для покупки '
                                      f'используйте магазин.')
             else:
-                user[0]["Money"] += math.trunc(shop_data[9][user[1]["Pet"] - 1]["PetPrice"]/2)
-                user[1]["Pet"] = 0
-                UserAction.save_user(message.from_id, user)
                 await message.answer(f'@id{message.from_id} ({info.first_name}), Вы продали '
                                      f'{shop_data[9][user[1]["Pet"]]["PetName"]} за '
                                      f'{general.change_number(math.trunc(shop_data[9][user[1]["Pet"]]["PetPrice"]/2))}$')
+                user[0]["Money"] += math.trunc(shop_data[9][user[1]["Pet"] - 1]["PetPrice"]/2)
+                user[1]["Pet"] = 0
+                UserAction.save_user(message.from_id, user)
         else:
             await message.answer(f'@id{message.from_id} ({info.first_name}), проверьте правильность введенных данных!')
 
