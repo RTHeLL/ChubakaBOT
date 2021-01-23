@@ -24,8 +24,8 @@ This project will be open source code.                                          
 
 
 ### My contacts - Контакты:
-Telegram - @kinderplayer
+Telegram - @kinderplayer<br>
 E-Mail - k1ndermail@ya.ru
 
-
+---
 P.S. Sorry for my bad english... - P.S. Извините за мой плохой английский...
