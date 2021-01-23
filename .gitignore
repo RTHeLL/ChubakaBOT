@@ -1,0 +1,7 @@
+# Folders
+config/
+logs/
+
+# Files
+fast_paste_in_base.py
+tests.py
