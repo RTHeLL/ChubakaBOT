@@ -176,22 +176,19 @@ class MainData(MySQL):
             else:
                 return result
 
-    def add_report_question(self, **kwargs):
+    def add_and_update_report(self, **kwargs):
         with self.connection.cursor() as cursor:
             args_list = list(kwargs.keys())
-            sql = f"INSERT INTO %s (%s, %s) VALUES ('%s', '%s')"
-            cursor.execute(sql % (config["MAIN_TABLES"]["REPORTS"], args_list[0], args_list[1], kwargs[args_list[0]],
-                                  kwargs[args_list[1]]))
-            logging.debug(f'New report: {kwargs[args_list[0]]}. Asked: {kwargs[args_list[1]]}')
-        self.connection.commit()
-
-    def add_report_answer(self, **kwargs):
-        with self.connection.cursor() as cursor:
-            args_list = list(kwargs.keys())
-            sql = f"UPDATE %s SET %s='%s', %s=%s WHERE `ID`=%s"
-            cursor.execute(sql % (config["MAIN_TABLES"]["REPORTS"], args_list[0], kwargs[args_list[0]], args_list[1],
-                                  kwargs[args_list[1]], kwargs[args_list[2]]))
-            logging.debug(f'New answer: {kwargs[args_list[0]]}. Answering: {kwargs[args_list[1]]}')
+            if len(args_list) > 2:
+                sql = f"UPDATE %s SET %s='%s', %s=%s WHERE `ID`=%s"
+                cursor.execute(sql % (config["MAIN_TABLES"]["REPORTS"], args_list[0], kwargs[args_list[0]], args_list[1],
+                                      kwargs[args_list[1]], kwargs[args_list[2]]))
+                logging.debug(f'New answer: {kwargs[args_list[0]]}. Answering: {kwargs[args_list[1]]}')
+            else:
+                sql = f"INSERT INTO %s (%s, %s) VALUES ('%s', '%s')"
+                cursor.execute(sql % (config["MAIN_TABLES"]["REPORTS"], args_list[0], args_list[1], kwargs[args_list[0]],
+                                      kwargs[args_list[1]]))
+                logging.debug(f'New report: {kwargs[args_list[0]]}. Asked: {kwargs[args_list[1]]}')
         self.connection.commit()
 
     def get_reports(self):
