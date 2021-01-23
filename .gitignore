@@ -3,8 +3,8 @@ config/
 config/mysql.ini
 config/vk.ini
 logs/
-classes/__pycache__
-data/__pycache__
+classes/__pycache__/
+data/__pycache__/
 .idea/
 
 # Files
