@@ -3,6 +3,7 @@ config/
 logs/
 classes/__pycache__
 data/__pycache__
+.idea/
 
 # Files
 fast_paste_in_base.py
