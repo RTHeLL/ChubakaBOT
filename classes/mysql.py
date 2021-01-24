@@ -115,13 +115,19 @@ class MainData(MySQL):
             else:
                 return result
 
-    def get_shop_data(self):
+    def get_shop_data(self, sort=None):
         with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
             result = []
-            for table in config.items("PROPERTY_TABLES"):
-                sql = "SELECT * FROM %s ORDER BY Price"
-                cursor.execute(sql % table[0])
-                result.append(cursor.fetchall())
+            if sort == 1:
+                for table in config.items("PROPERTY_TABLES"):
+                    sql = "SELECT * FROM %s ORDER BY Price"
+                    cursor.execute(sql % table[0])
+                    result.append(cursor.fetchall())
+            else:
+                for table in config.items("PROPERTY_TABLES"):
+                    sql = "SELECT * FROM %s"
+                    cursor.execute(sql % table[0])
+                    result.append(cursor.fetchall())
             if len(result) == 0:
                 return False
             else:
@@ -139,8 +145,10 @@ class MainData(MySQL):
         with self.connection.cursor() as cursor:
             args_list = list(kwargs.keys())
             sql = f"INSERT INTO %s (%s, %s, %s) VALUES ('%s', %s, %s)"
-            cursor.execute(sql % (config["PROPERTY_TABLES"]["BUSINESSES"], args_list[0], args_list[1], args_list[2], kwargs[args_list[0]], kwargs[args_list[1]],
-                                  kwargs[args_list[2]]))
+            cursor.execute(sql % (
+            config["PROPERTY_TABLES"]["BUSINESSES"], args_list[0], args_list[1], args_list[2], kwargs[args_list[0]],
+            kwargs[args_list[1]],
+            kwargs[args_list[2]]))
             logging.debug(f'New business "{kwargs[args_list[0]]} - price: {kwargs[args_list[1]]}$, workers: '
                           f'{kwargs[args_list[2]]}" added!')
         self.connection.commit()
@@ -149,9 +157,10 @@ class MainData(MySQL):
         with self.connection.cursor() as cursor:
             args_list = list(kwargs.keys())
             sql = f"INSERT INTO %s (%s, %s, %s, %s, %s) VALUES ('%s', %s, %s, %s, '%s')"
-            cursor.execute(sql % (config["PROPERTY_TABLES"]["PETS"], args_list[0], args_list[1], args_list[2], args_list[3], args_list[4],
-                                  kwargs[args_list[0]], kwargs[args_list[1]], kwargs[args_list[2]],
-                                  kwargs[args_list[3]], kwargs[args_list[4]]))
+            cursor.execute(sql % (
+            config["PROPERTY_TABLES"]["PETS"], args_list[0], args_list[1], args_list[2], args_list[3], args_list[4],
+            kwargs[args_list[0]], kwargs[args_list[1]], kwargs[args_list[2]],
+            kwargs[args_list[3]], kwargs[args_list[4]]))
             logging.debug(f'New pet "{kwargs[args_list[0]]} - price: {kwargs[args_list[1]]}$, min: '
                           f'{kwargs[args_list[2]]}, max: {kwargs[args_list[3]]}, icon: {kwargs[args_list[4]]}" added!')
         self.connection.commit()
@@ -160,8 +169,10 @@ class MainData(MySQL):
         with self.connection.cursor() as cursor:
             args_list = list(kwargs.keys())
             sql = f"INSERT INTO %s (%s, %s, %s) VALUES ('%s', %s, %s)"
-            cursor.execute(sql % (config["PROPERTY_TABLES"]["FARMS"], args_list[0], args_list[1], args_list[2], kwargs[args_list[0]], kwargs[args_list[1]],
-                                  kwargs[args_list[2]]))
+            cursor.execute(sql % (
+            config["PROPERTY_TABLES"]["FARMS"], args_list[0], args_list[1], args_list[2], kwargs[args_list[0]],
+            kwargs[args_list[1]],
+            kwargs[args_list[2]]))
             logging.debug(f'New farm "{kwargs[args_list[0]]} - price: {kwargs[args_list[1]]}$, btc per hour: '
                           f'{kwargs[args_list[2]]}" added!')
         self.connection.commit()
@@ -181,13 +192,15 @@ class MainData(MySQL):
             args_list = list(kwargs.keys())
             if len(args_list) > 2:
                 sql = f"UPDATE %s SET %s='%s', %s=%s WHERE `ID`=%s"
-                cursor.execute(sql % (config["MAIN_TABLES"]["REPORTS"], args_list[0], kwargs[args_list[0]], args_list[1],
-                                      kwargs[args_list[1]], kwargs[args_list[2]]))
+                cursor.execute(
+                    sql % (config["MAIN_TABLES"]["REPORTS"], args_list[0], kwargs[args_list[0]], args_list[1],
+                           kwargs[args_list[1]], kwargs[args_list[2]]))
                 logging.debug(f'New answer: {kwargs[args_list[0]]}. Answering: {kwargs[args_list[1]]}')
             else:
                 sql = f"INSERT INTO %s (%s, %s) VALUES ('%s', '%s')"
-                cursor.execute(sql % (config["MAIN_TABLES"]["REPORTS"], args_list[0], args_list[1], kwargs[args_list[0]],
-                                      kwargs[args_list[1]]))
+                cursor.execute(
+                    sql % (config["MAIN_TABLES"]["REPORTS"], args_list[0], args_list[1], kwargs[args_list[0]],
+                           kwargs[args_list[1]]))
                 logging.debug(f'New report: {kwargs[args_list[0]]}. Asked: {kwargs[args_list[1]]}')
         self.connection.commit()
 
