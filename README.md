@@ -1,13 +1,11 @@
-# ChubakaBOT v0.6.6
+# ChubakaBOT v0.7
 
 ### Changelog - Лог обновлений
 |                             ENG                                      |             RUS 
 -----------------------------------------------------------------------|:----------------------------------------------------------: 
-Add marriages                                                          |   Добавлена браки
-Removed extra commands                                                 |   Удалены лишние команды
-Redesigned method for adding and updating reports in the database      |   Переработан метод добавления и обновления репортов в БД
-Added a system of own nicknames                                        |   Добавлена система собственных ников
-Fixed businesses and yachts in the store                               |   Исправлены бизнесы и яхты в магазине
+Fixed bugs when buying in the store                                    |   Исправлены ошибки при покупке в магазине
+Added business system                                                  |   Добавлена система бизнесов
+Fixed bugs with the letter "Ё"                                         |   Исправлены ошибки с буквой "Ё"
 
 
 ### About the project - О проекте
