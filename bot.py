@@ -89,6 +89,9 @@ SHOP_KEYBOARD = Keyboard(one_time=False, inline=False).schema(
             {"label": "🐸 Питомцы", "type": "text", "payload": {"cmd": "cmd_shop_other_pets"}, "color": "secondary"}
         ],
         [
+            {"label": "📦 Кейсы", "type": "text", "payload": {"cmd": "cmd_shop_other_cases"}, "color": "secondary"}
+        ],
+        [
             {"label": "◀ В главное меню", "type": "text", "payload": {"cmd": "cmd_mainmenu"}, "color": "positive"}
         ]
     ]
@@ -439,7 +442,8 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
                                  f'⠀👑 Рейтинг [кол-во]⠀⠀{general.change_number(1000000)}$/ед.\n'
                                  f'⠀💼 Бизнесы\n'
                                  f'⠀🌐 Биткоин [кол-во]⠀⠀{general.change_number(MainData.get_settings()[0]["BTC_USD_Curse"])}$/ед.\n'
-                                 f'⠀🐸 Питомцы'
+                                 f'⠀🐸 Питомцы\n'
+                                 f'⠀📦 Кейсы'
                                  f'\n🔎 Для просмотра категории используйте "магазин [категория]".\n'
                                  f'🔎 Для покупки используйте "магазин [категория] купить [номер товара]".\n',
                                  keyboard=SHOP_KEYBOARD)
@@ -676,8 +680,8 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
                         await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет столько денег!')
                     else:
                         user[0]["Money"] -= shop_data[9][int(product) - 1]["Price"]
-                        user[0]["Pet_Hunger"] = 0
-                        user[0]["Pet_Joy"] = 0
+                        user[0]["Pet_Hunger"] = 100
+                        user[0]["Pet_Joy"] = 100
                         user[1]["Pet"] = product
                         user[1]["PetLevel"] = 1
                         UserAction.save_user(message.from_id, user)
@@ -706,6 +710,78 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
                         await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы приобрели себе '
                                              f'{shop_data[10][int(product) - 1]["MotoName"]} за '
                                              f'{general.change_number(shop_data[10][int(product) - 1]["Price"])}$')
+        elif category.lower() == 'кейсы':
+            if product is None:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), кейсы: {temp_text}\n\n '
+                                     f'🔸 1. Bronze Case [10.000$]\n'
+                                     f'🔸 2. Silver Case [60.000$]\n'
+                                     f'🔸 3. Gold Case [150.000$]\n'
+                                     f'🔸 4. Premium Case [10 руб.]\n'
+                                     f'❓ Для покупки введите "магазин кейсы купить [номер]"')
+            elif product == 1:
+                if count is None:
+                    if user[0]["Money"] < 10000:
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет столько денег!')
+                    else:
+                        user[0]["Money"] -= 10000
+                        user[0]["Bronze_Case"] += 1
+                        UserAction.save_user(message.from_id, user)
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы приобрели себе '
+                                             f'Bronze Case за 10.000$')
+                else:
+                    if user[0]["Money"] < 10000 * count:
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет столько денег!')
+                    else:
+                        user[0]["Money"] -= 10000 * count
+                        user[0]["Bronze_Case"] += count
+                        UserAction.save_user(message.from_id, user)
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы приобрели себе '
+                                             f'{general.change_number(count)} Bronze Case за '
+                                             f'{general.change_number(10000 * count)}$')
+            elif product == 2:
+                if count is None:
+                    if user[0]["Money"] < 60000:
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет столько денег!')
+                    else:
+                        user[0]["Money"] -= 60000
+                        user[0]["Silver_Case"] += 1
+                        UserAction.save_user(message.from_id, user)
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы приобрели себе '
+                                             f'Silver Case за 60.000$')
+                else:
+                    if user[0]["Money"] < 60000 * count:
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет столько денег!')
+                    else:
+                        user[0]["Money"] -= 60000 * count
+                        user[0]["Silver_Case"] += count
+                        UserAction.save_user(message.from_id, user)
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы приобрели себе '
+                                             f'{general.change_number(count)} Silver Case за '
+                                             f'{general.change_number(60000 * count)}$')
+            elif product == 3:
+                if count is None:
+                    if user[0]["Money"] < 150000:
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет столько денег!')
+                    else:
+                        user[0]["Money"] -= 150000
+                        user[0]["Gold_Case"] += 1
+                        UserAction.save_user(message.from_id, user)
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы приобрели себе '
+                                             f'Gold Case за 150.000$')
+                else:
+                    if user[0]["Money"] < 150000 * count:
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет столько денег!')
+                    else:
+                        user[0]["Money"] -= 150000 * count
+                        user[0]["Gold_Case"] += count
+                        UserAction.save_user(message.from_id, user)
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы приобрели себе '
+                                             f'{general.change_number(count)} Gold Case за '
+                                             f'{general.change_number(150000 * count)}$')
+            elif product == 4:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), данный кейс можно купить только '
+                                     f'через донат\n'
+                                     f'Используйте: донат')
         else:
             await message.answer(f"@id{message.from_id} ({user[0]['Name']}), проверьте правильность введенных данных!")
 
@@ -724,6 +800,7 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
 @bot.on.message(payload={"cmd": "cmd_shop_other_farms"})
 @bot.on.message(payload={"cmd": "cmd_shop_other_businesses"})
 @bot.on.message(payload={"cmd": "cmd_shop_other_pets"})
+@bot.on.message(payload={"cmd": "cmd_shop_other_cases"})
 async def shop_products_handler(message: Message, info: UsersUserXtrCounters):
     if not UserAction.get_user(message.from_id):
         await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
@@ -799,6 +876,13 @@ async def shop_products_handler(message: Message, info: UsersUserXtrCounters):
                 temp_text += f'\n🔸 {motorcycle["ID"]}. {motorcycle["MotoName"]} [{general.change_number(motorcycle["Price"])}$]'
             await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), мотоциклы: {temp_text}\n\n '
                                  f'❓ Для покупки введите "магазин мотоциклы купить [номер]"')
+        if products_category == 'other_cases':
+            await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), кейсы: {temp_text}\n\n '
+                                 f'🔸 1. Bronze Case [10.000$]\n'
+                                 f'🔸 2. Silver Case [60.000$]\n'
+                                 f'🔸 3. Gold Case [150.000$]\n'
+                                 f'🔸 4. Premium Case [10 руб.]\n'
+                                 f'❓ Для покупки введите "магазин кейсы купить [номер]"')
 
 
 @bot.on.message(text=["Бонус", "бонус"])
@@ -1518,7 +1602,7 @@ async def pet_handler(message: Message, info: UsersUserXtrCounters, action: Opti
                 else:
                     found_money = random.randint(pets[user[1]["Pet"] - 1]["PetMinMoney"],
                                                  pets[user[1]["Pet"] - 1]["PetMaxMoney"])
-                    chance_loss = random.randint(1, 35 * user[1]["PetLevel"])
+                    chance_loss = random.randint(1, 5)
                     if chance_loss == 1:
                         await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш питомец потерялся в походе 😔')
                         user[0]["Pet_Fatigue"] = 0
@@ -1959,6 +2043,97 @@ async def farm_handler(message: Message, info: UsersUserXtrCounters, action: Opt
             UserAction.save_user(message.from_id, user)
         else:
             await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), проверьте правильность введенных данных!')
+
+
+# Case commands
+@bot.on.message(text=["Кейсы", "кейсы"])
+@bot.on.message(text=["Кейсы <type> <action>", "кейсы <type> <action>"])
+async def cases_handler(message: Message, info: UsersUserXtrCounters, type: Optional[int] = None,
+                        action: Optional[str] = None):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        user = UserAction.get_user(message.from_id)
+        if type is None:
+            await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваши кейсы:\n'
+                                 f'🥉 Bronze Case {general.change_number(user[0]["Bronze_Case"])} шт.\n'
+                                 f'🥈 Silver Case {general.change_number(user[0]["Silver_Case"])} шт.\n'
+                                 f'🥇 Gold Case {general.change_number(user[0]["Gold_Case"])} шт.\n'
+                                 f'🥇 Premium Case {general.change_number(user[0]["Premium_Case"])} шт.\n\n'
+                                 f'Команды доступные для кейсов:\n'
+                                 f'кейсы открыть')
+        elif type == 1:
+            if action is None:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваши кейсы:\n'
+                                     f'🥉 Bronze Case {general.change_number(user[0]["Bronze_Case"])} шт.\n'
+                                     f'🥈 Silver Case {general.change_number(user[0]["Silver_Case"])} шт.\n'
+                                     f'🥇 Gold Case {general.change_number(user[0]["Gold_Case"])} шт.\n'
+                                     f'🥇 Premium Case {general.change_number(user[0]["Premium_Case"])} шт.\n\n'
+                                     f'Команды доступные для кейсов:\n'
+                                     f'кейсы открыть')
+            elif action == 'открыть':
+                if user[0]["Bronze_Case"] < 1:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет ни одного Bronze Case 😔\n'
+                                         f'Для покупки, используйте: магазин кейсы')
+                else:
+                    user[0]["Bronze_Case"] -= 1
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы открыли Bronze Case 🎉\n'
+                                         f'Ваш приз: ')
+        elif type == 2:
+            if action is None:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваши кейсы:\n'
+                                     f'🥉 Bronze Case {general.change_number(user[0]["Bronze_Case"])} шт.\n'
+                                     f'🥈 Silver Case {general.change_number(user[0]["Silver_Case"])} шт.\n'
+                                     f'🥇 Gold Case {general.change_number(user[0]["Gold_Case"])} шт.\n'
+                                     f'🥇 Premium Case {general.change_number(user[0]["Premium_Case"])} шт.\n\n'
+                                     f'Команды доступные для кейсов:\n'
+                                     f'кейсы открыть')
+            elif action == 'открыть':
+                if user[0]["Silver_Case"] < 1:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет ни одного Silver Case 😔\n'
+                                         f'Для покупки, используйте: магазин кейсы')
+                else:
+                    user[0]["Silver_Case"] -= 1
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы открыли Silver Case 🎉\n'
+                                         f'Ваш приз: ')
+        elif type == 3:
+            if action is None:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваши кейсы:\n'
+                                     f'🥉 Bronze Case {general.change_number(user[0]["Bronze_Case"])} шт.\n'
+                                     f'🥈 Silver Case {general.change_number(user[0]["Silver_Case"])} шт.\n'
+                                     f'🥇 Gold Case {general.change_number(user[0]["Gold_Case"])} шт.\n'
+                                     f'🥇 Premium Case {general.change_number(user[0]["Premium_Case"])} шт.\n\n'
+                                     f'Команды доступные для кейсов:\n'
+                                     f'кейсы открыть')
+            elif action == 'открыть':
+                if user[0]["Gold_Case"] < 1:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет ни одного Gold Case 😔\n'
+                                         f'Для покупки, используйте: магазин кейсы')
+                else:
+                    user[0]["Gold_Case"] -= 1
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы открыли Gold Case 🎉\n'
+                                         f'Ваш приз: ')
+        elif type == 4:
+            if action is None:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваши кейсы:\n'
+                                     f'🥉 Bronze Case {general.change_number(user[0]["Bronze_Case"])} шт.\n'
+                                     f'🥈 Silver Case {general.change_number(user[0]["Silver_Case"])} шт.\n'
+                                     f'🥇 Gold Case {general.change_number(user[0]["Gold_Case"])} шт.\n'
+                                     f'🥇 Premium Case {general.change_number(user[0]["Premium_Case"])} шт.\n\n'
+                                     f'Команды доступные для кейсов:\n'
+                                     f'кейсы открыть')
+            elif action == 'открыть':
+                if user[0]["Premium_Case"] < 1:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет ни одного Premium Case 😔\n'
+                                         f'Для покупки, используйте: донат')
+                else:
+                    user[0]["Premium_Case"] -= 1
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы открыли Premium Case 🎉\n'
+                                         f'Ваш приз: ')
+
 
 
 # Admin commands
