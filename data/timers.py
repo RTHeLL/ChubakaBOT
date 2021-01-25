@@ -61,4 +61,16 @@ class Timers:
                         cursor.execute(sql % (MainData.get_data('businesses')[user[1]["Business"]-1]["MoneyPerHouse"]), user["VK_ID"])
                     else:
                         cursor.execute(sql % (MainData.get_data('businesses')[user[1]["Business"]-1]["MoneyPerHouse"]*2, user["VK_ID"]))
+
+            # Energy
+            sql = f"UPDATE users SET Energy=Energy+1 WHERE Energy<30"
+            cursor.execute(sql)
+        MySQL.connection.commit()
+
+    @staticmethod
+    def minute_timer():
+        with MySQL.connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            # Pet fatigue
+            sql = f"UPDATE users SET Pet_Fatigue=Pet_Fatigue-1 WHERE Pet_Fatigue>0"
+            cursor.execute(sql)
         MySQL.connection.commit()

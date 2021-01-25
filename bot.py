@@ -212,6 +212,7 @@ fliptext_dict = {'q': 'q', 'w': 'ʍ', 'e': 'ǝ', 'r': 'ɹ', 't': 'ʇ', 'y': 'ʎ'
 
 # Timers
 timer.RepeatedTimer(3600, data.timers.Timers.hour_timer).start()
+timer.RepeatedTimer(60, data.timers.Timers.minute_timer()).start()
 
 
 # User commands
@@ -249,7 +250,8 @@ async def help_handler(message: Message, info: UsersUserXtrCounters):
                              f"💼 Бизнес:\n"
                              f"⠀⠀📈 Бизнес\n"
                              f"⠀⠀💵 Бизнес снять [сумма]\n"
-                             f"⠀⠀👷 Бизнес нанять [кол-во]\n\n"
+                             f"⠀⠀👷 Бизнес нанять [кол-во]\n"
+                             f"⠀⠀✅ Бизнес улучшить\n\n"
                              f"🌽 Питомцы:\n"
                              f"⠀⠀🐒 Питомец\n"
                              f"⠀⠀🐪 Питомец поход\n"
@@ -674,7 +676,10 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
                         await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет столько денег!')
                     else:
                         user[0]["Money"] -= shop_data[9][int(product) - 1]["Price"]
+                        user[0]["Pet_Hunger"] = 0
+                        user[0]["Pet_Joy"] = 0
                         user[1]["Pet"] = product
+                        user[1]["PetLevel"] = 1
                         UserAction.save_user(message.from_id, user)
                         await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы приобрели себе '
                                              f'{shop_data[9][int(product) - 1]["PetIcon"]} '
@@ -1207,7 +1212,10 @@ async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, pro
                                      f'{shop_data[9][user[1]["Pet"] - 1]["PetName"]} за '
                                      f'{general.change_number(math.trunc(shop_data[9][user[1]["Pet"] - 1]["Price"] / 2))}$')
                 user[0]["Money"] += math.trunc(shop_data[9][user[1]["Pet"] - 1]["Price"] / 2)
+                user[0]["Pet_Hunger"] = 0
+                user[0]["Pet_Joy"] = 0
                 user[1]["Pet"] = 0
+                user[1]["PetLevel"] = 0
                 UserAction.save_user(message.from_id, user)
         elif property_name == 'мотоцикл':
             if user[1]["Motorcycle"] == 0:
@@ -1355,7 +1363,8 @@ async def divorce_handler(message: Message, info: UsersUserXtrCounters, partner_
             if partner_user is False:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), такого пользователя не существует')
             elif user[0]["Marriage_Partner"] is not partner_user[0]["Marriage_Partner"]:
-                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), данный игрок не является Вашим партнером')
+                await message.answer(
+                    f'@id{message.from_id} ({user[0]["Name"]}), данный игрок не является Вашим партнером')
             elif user[0]["Marriage_Partner"] == 0:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы не состоите в браке')
             else:
@@ -1370,6 +1379,7 @@ async def divorce_handler(message: Message, info: UsersUserXtrCounters, partner_
                                      f'развелся с Вами 💔\n', user_id=partner_user[0]["VK_ID"])
 
 
+# Business
 @bot.on.message(text=["Бизнес", "бизнес"])
 @bot.on.message(text=["Бизнес <action>", "бизнес <action>"])
 @bot.on.message(text=["Бизнес <action> <count>", "бизнес <action> <count>"])
@@ -1388,30 +1398,32 @@ async def business_handler(message: Message, info: UsersUserXtrCounters, action:
                                  f'Используйте магазин для покупки')
         elif action is None:
             if user[1]["BusinessLevel"] == 1:
-                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), статистика вашего бизнеса «{businesses[user[1]["Business"]-1]["BusinessName"]}»:\n'
-                                     f'💸 Прибыль: {general.change_number(businesses[user[1]["Business"]-1]["MoneyPerHouse"])}$\n'
-                                     f'💼 Рабочих: {user[0]["Workers_In_Business"]}/{businesses[user[1]["Business"]-1]["BusinessWorkers"]}\n'
-                                     f'💰 На счёте: {general.change_number(user[0]["Money_In_Business"])}$\n'
-                                     f'{"❌ У Вас работает мало людей. Прибыль уменьшена в 2 раза." if user[0]["Workers_In_Business"] < businesses[user[1]["Business"]-1]["BusinessWorkers"] else ""}'
-                                     f'\n✅ Вы можете купить следующее улучшение за {general.change_number(math.trunc(businesses[user[1]["Business"]-1]["Price"]*1.75))}$')
+                await message.answer(
+                    f'@id{message.from_id} ({user[0]["Name"]}), статистика вашего бизнеса «{businesses[user[1]["Business"] - 1]["BusinessName"]}»:\n'
+                    f'💸 Прибыль: {general.change_number(businesses[user[1]["Business"] - 1]["MoneyPerHouse"])}$\n'
+                    f'💼 Рабочих: {user[0]["Workers_In_Business"]}/{businesses[user[1]["Business"] - 1]["BusinessWorkers"]}\n'
+                    f'💰 На счёте: {general.change_number(user[0]["Money_In_Business"])}$\n'
+                    f'{"❌ У Вас работает мало людей. Прибыль уменьшена в 2 раза." if user[0]["Workers_In_Business"] < businesses[user[1]["Business"] - 1]["BusinessWorkers"] else ""}'
+                    f'\n✅ Вы можете купить следующее улучшение за {general.change_number(math.trunc(businesses[user[1]["Business"] - 1]["Price"] * 1.75))}$')
             elif user[1]["BusinessLevel"] == 2:
-                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), статистика вашего бизнеса «{businesses[user[1]["Business"]-1]["BusinessName"]}»:\n'
-                                     f'💸 Прибыль: {general.change_number(businesses[user[1]["Business"]-1]["MoneyPerHouse"]*2)}$\n'
-                                     f'💼 Рабочих: {user[0]["Workers_In_Business"]}/{businesses[user[1]["Business"]-1]["BusinessWorkers"]*2}\n'
-                                     f'💰 На счёте: {general.change_number(user[0]["Money_In_Business"])}$\n'
-                                     f'{"❌ У Вас работает мало людей. Прибыль уменьшена в 2 раза." if user[0]["Workers_In_Business"] < businesses[user[1]["Business"]-1]["BusinessWorkers"]*2 else ""}')
+                await message.answer(
+                    f'@id{message.from_id} ({user[0]["Name"]}), статистика вашего бизнеса «{businesses[user[1]["Business"] - 1]["BusinessName"]}»:\n'
+                    f'💸 Прибыль: {general.change_number(businesses[user[1]["Business"] - 1]["MoneyPerHouse"] * 2)}$\n'
+                    f'💼 Рабочих: {user[0]["Workers_In_Business"]}/{businesses[user[1]["Business"] - 1]["BusinessWorkers"] * 2}\n'
+                    f'💰 На счёте: {general.change_number(user[0]["Money_In_Business"])}$\n'
+                    f'{"❌ У Вас работает мало людей. Прибыль уменьшена в 2 раза." if user[0]["Workers_In_Business"] < businesses[user[1]["Business"] - 1]["BusinessWorkers"] * 2 else ""}')
             await message.answer(f'Команды доступные для бизнеса:\n'
                                  f'бизнес улучшить\n'
                                  f'бизнес нанять [кол-во]\n'
                                  f'бизнес снять [сумма]')
         elif action == 'улучшить':
-            if user[0]["Money"] < math.trunc(businesses[user[1]["Business"]-1]["Price"]*1.75):
+            if user[0]["Money"] < math.trunc(businesses[user[1]["Business"] - 1]["Price"] * 1.75):
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас недостаточно денег для улучшения'
                                      f' бизнеса')
             elif user[1]["BusinessLevel"] == 2:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас уже улучшенный бизнес')
             else:
-                user[0]["Money"] -= math.trunc(businesses[user[1]["Business"]-1]["Price"]*1.75)
+                user[0]["Money"] -= math.trunc(businesses[user[1]["Business"] - 1]["Price"] * 1.75)
                 user[1]["BusinessLevel"] = 2
                 UserAction.save_user(message.from_id, user)
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы улучшили свой бизнес ⬆')
@@ -1419,17 +1431,21 @@ async def business_handler(message: Message, info: UsersUserXtrCounters, action:
             if count is None:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), используйте: бизнес нанять [кол-во]')
             else:
-                if user[1]["BusinessLevel"] == 1 and (user[0]["Workers_In_Business"]+int(count) > businesses[user[1]["Business"]-1]["BusinessWorkers"]):
+                if user[1]["BusinessLevel"] == 1 and (
+                        user[0]["Workers_In_Business"] + int(count) > businesses[user[1]["Business"] - 1][
+                    "BusinessWorkers"]):
                     await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), лимит работников бизнеса')
-                elif user[1]["BusinessLevel"] == 2 and (user[0]["Workers_In_Business"]+int(count) > businesses[user[1]["Business"]-1]["BusinessWorkers"]*2):
+                elif user[1]["BusinessLevel"] == 2 and (
+                        user[0]["Workers_In_Business"] + int(count) > businesses[user[1]["Business"] - 1][
+                    "BusinessWorkers"] * 2):
                     await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), лимит работников бизнеса')
                 else:
                     user[0]["Workers_In_Business"] += int(count)
-                    user[0]["Money"] -= math.trunc((businesses[user[1]["Business"]-1]["Price"]*0.0001)*int(count))
+                    user[0]["Money"] -= math.trunc((businesses[user[1]["Business"] - 1]["Price"] * 0.0001) * int(count))
                     UserAction.save_user(message.from_id, user)
                     await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы наняли '
                                          f'{general.change_number(int(count))} рабочих за '
-                                         f'{general.change_number(math.trunc((businesses[user[1]["Business"]-1]["Price"]*0.0001)*int(count)))}$ ☺')
+                                         f'{general.change_number(math.trunc((businesses[user[1]["Business"] - 1]["Price"] * 0.0001) * int(count)))}$ ☺')
         elif action == 'снять':
             if count is None:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), используйте: бизнес снять [сумма]')
@@ -1443,6 +1459,138 @@ async def business_handler(message: Message, info: UsersUserXtrCounters, action:
                     UserAction.save_user(message.from_id, user)
                     await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы сняли со счета своего бизнеса '
                                          f'{general.change_number(int(count))}$ 🤑\n')
+
+
+@bot.on.message(text=["Питомец", "питомец"])
+@bot.on.message(text=["Питомец <action>", "питомец <action>"])
+async def pet_handler(message: Message, info: UsersUserXtrCounters, action: Optional[str] = None):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        user = UserAction.get_user(message.from_id)
+        pets = MainData.get_data('pets')
+        if action is None and user[1]["Pet"] == 0:
+            await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет питомца.\n'
+                                 f'Вы можете найти питомца. Используйте: питомец найти\n'
+                                 f'или используйте магазин для покупки')
+        elif action is None:
+            await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), информация о Вашем питомце:\n'
+                                 f'{pets[user[1]["Pet"] - 1]["PetIcon"]} Питомец: «{pets[user[1]["Pet"] - 1]["PetName"]}»\n'
+                                 f'💳 Стоимость улучшения: {general.change_number(pets[user[1]["Pet"] - 1]["Price"] * (user[1]["PetLevel"] + 1))}$\n'
+                                 f'💖 Радость: {user[0]["Pet_Joy"]}%\n'
+                                 f'🍗 Сытость: {user[0]["Pet_Hunger"]}%\n'
+                                 f'🌟 Уровень: {user[1]["PetLevel"]}\n\n'
+                                 f'Команды доступные для питомца:\n'
+                                 f'питомец улучшить\n'
+                                 f'питомец поход')
+        elif action == 'улучшить':
+            if user[1]["Pet"] == 0:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет питомца.\n'
+                                     f'Вы можете найти питомца. Используйте: питомец найти\n'
+                                     f'или используйте магазин для покупки')
+            else:
+                if user[0]["Money"] < pets[user[1]["Pet"] - 1]["Price"] * (user[1]["PetLevel"] + 1):
+                    await message.answer(
+                        f'@id{message.from_id} ({user[0]["Name"]}), у Вас недостаточно денег для улучшения')
+                else:
+                    user[0]["Money"] -= pets[user[1]["Pet"] - 1]["Price"] * (user[1]["PetLevel"] + 1)
+                    user[1]["PetLevel"] += 1
+                    UserAction.save_user(message.from_id, user)
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы улучшили своего питомца ⬆')
+        elif action == 'поход':
+            if user[1]["Pet"] == 0:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет питомца.\n'
+                                     f'Вы можете найти питомца. Используйте: питомец найти\n'
+                                     f'или используйте магазин для покупки')
+            else:
+                if user[0]["Pet_Fatigue"] > 0:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш питомец устал. \n'
+                                         f'Вы сможете отправить его в поход через {user[0]["Pet_Fatigue"]} минут')
+                elif user[0]["Pet_Joy"] < 5:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вашего питомца нет настроения.\n'
+                                         f'Поиграйте с ними, чтобы поднять ему настроение')
+                elif user[0]["Pet_Hunger"] < 5:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш питомец слишком голоден.\n'
+                                         f'Вам стоит покормить его')
+                else:
+                    found_money = random.randint(pets[user[1]["Pet"] - 1]["PetMinMoney"],
+                                                 pets[user[1]["Pet"] - 1]["PetMaxMoney"])
+                    chance_loss = random.randint(1, 35 * user[1]["PetLevel"])
+                    if chance_loss == 1:
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш питомец потерялся в походе 😔')
+                        user[0]["Pet_Fatigue"] = 0
+                        user[0]["Pet_Hunger"] = 0
+                        user[0]["Pet_Joy"] = 0
+                        user[1]["Pet"] = 0
+                        user[1]["PetLevel"] = 0
+                        UserAction.save_user(message.from_id, user)
+                    else:
+                        user[0]["Money"] += found_money
+                        user[0]["Pet_Fatigue"] = 60
+                        user[0]["Pet_Joy"] -= random.randint(1, 15)
+                        user[0]["Pet_Hunger"] -= random.randint(1, 15)
+                        UserAction.save_user(message.from_id, user)
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш питомец нашел в походе {general.change_number(found_money)}$')
+        elif action == 'найти':
+            if user[1]["Pet"] != 0:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас уже есть питомец')
+            else:
+                if user[0]["Energy"] <= 0:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас недостаточно энергии 😔')
+                else:
+                    chance_found = random.randint(0, 70)
+                    if chance_found == 1:
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы нашли питомца «{pets[0]["PetName"]}»')
+                        user[0]["Energy"] -= 1
+                        user[0]["Pet_Fatigue"] = 0
+                        user[0]["Pet_Hunger"] = 0
+                        user[0]["Pet_Joy"] = 0
+                        user[1]["Pet"] = 1
+                        user[1]["PetLevel"] = 1
+                        UserAction.save_user(message.from_id, user)
+                    else:
+                        user[0]["Energy"] -= 1
+                        UserAction.save_user(message.from_id, user)
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы не смогли найти питомца 😔\n'
+                                             f'💡 Ваша энергия: {user[0]["Energy"]}\n'
+                                             f'Попробуйте еще раз')
+        elif action == 'поиграть':
+            if user[1]["Pet"] == 0:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет питомца.\n'
+                                     f'Вы можете найти питомца. Используйте: питомец найти\n'
+                                     f'или используйте магазин для покупки')
+            else:
+                if user[0]["Pet_Joy"] == 100:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш питомец и так в хорошем настроении')
+                elif user[0]["Energy"] <= 0:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас недостаточно энергии 😔')
+                else:
+                    user[0]["Energy"] -= 1
+                    user[0]["Pet_Joy"] = 100
+                    UserAction.save_user(message.from_id, user)
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы поиграли со своим питомцем.\n'
+                                         f'Теперь он в хорошем настроении и может отправляться в поход 🎉')
+        elif action == 'покормить':
+            if user[1]["Pet"] == 0:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет питомца.\n'
+                                     f'Вы можете найти питомца. Используйте: питомец найти\n'
+                                     f'или используйте магазин для покупки')
+            else:
+                if user[0]["Pet_Hunger"] == 100:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш питомец и так сыт')
+                elif user[0]["Money"] < user[1]["PetLevel"]*3:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас недостаточно денег, чтобы '
+                                         f'покормить питомца 😔')
+                else:
+                    user[0]["Money"] -= user[1]["PetLevel"]*3
+                    user[0]["Pet_Hunger"] = 100
+                    UserAction.save_user(message.from_id, user)
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы покормили своего питомца за '
+                                         f'{general.change_number(user[1]["PetLevel"]*3)}$\n'
+                                         f'Теперь он сыт и может отправляться в поход 🎉')
 
 
 # Games
