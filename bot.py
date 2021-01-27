@@ -1,6 +1,8 @@
 import configparser
 import logging
 import random
+import time
+
 import math
 import requests
 from typing import Optional, Any, List
@@ -215,7 +217,7 @@ fliptext_dict = {'q': 'q', 'w': 'ʍ', 'e': 'ǝ', 'r': 'ɹ', 't': 'ʇ', 'y': 'ʎ'
 
 # Timers
 timer.RepeatedTimer(3600, data.timers.Timers.hour_timer).start()
-timer.RepeatedTimer(60, data.timers.Timers.minute_timer()).start()
+timer.RepeatedTimer(60, data.timers.Timers.minute_timer).start()
 
 
 # User commands
@@ -900,45 +902,42 @@ async def bonus_handler(message: Message, info: UsersUserXtrCounters):
             temp_btc = random.randint(1, 50)
             if user[0]["RankLevel"] == 1:
                 user[0]["Money"] += temp_money
-                user[0]["Bonus"] = 24
+                user[0]["Bonus"] = 24*60
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш сегодняшний бонус '
                                      f'{general.change_number(temp_money)} $. '
-                                     f'Возвращайтесь через {user[0]["Bonus"]} ч.')
+                                     f'Возвращайтесь через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"]*60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"]*60))}.')
             elif user[0]["RankLevel"] == 2:
                 user[0]["Money"] += temp_money * 2
                 user[0]["BTC"] += temp_btc
-                user[0]["Bonus"] = 12
+                user[0]["Bonus"] = 12*60
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш сегодняшний бонус '
                                      f'{general.change_number(temp_money * 2)} $ '
-                                     f'и {temp_btc} ₿. Возвращайтесь через {user[0]["Bonus"]} ч.')
+                                     f'и {general.change_number(temp_btc)} ₿. Возвращайтесь через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"]*60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"]*60))}')
             elif user[0]["RankLevel"] == 3:
                 user[0]["Money"] += temp_money * 3
                 user[0]["BTC"] += temp_btc * 2
-                user[0]["Bonus"] = 6
+                user[0]["Bonus"] = 6*60
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш сегодняшний бонус '
                                      f'{general.change_number(temp_money * 3)} $ '
-                                     f'и {general.change_number(temp_btc * 2)} ₿. Возвращайтесь через {user[0]["Bonus"]} '
-                                     f' ч.')
+                                     f'и {general.change_number(temp_btc * 2)} ₿. Возвращайтесь через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"]*60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"]*60))}')
             elif user[0]["RankLevel"] == 4:
                 user[0]["Money"] += temp_money * 4
                 user[0]["BTC"] += temp_btc * 3
-                user[0]["Bonus"] = 3
+                user[0]["Bonus"] = 3*60
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш сегодняшний бонус '
                                      f'{general.change_number(temp_money * 4)} $ '
-                                     f'и {general.change_number(temp_btc * 3)} ₿. Возвращайтесь через {user[0]["Bonus"]} '
-                                     f'ч.')
+                                     f'и {general.change_number(temp_btc * 3)} ₿. Возвращайтесь через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"]*60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"]*60))}')
             elif user[0]["RankLevel"] >= 5:
                 user[0]["Money"] += temp_money * 5
                 user[0]["BTC"] += temp_btc * 4
-                user[0]["Bonus"] = 1
+                user[0]["Bonus"] = 1*60
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш сегодняшний бонус '
                                      f'{general.change_number(temp_money * 5)} $ '
-                                     f'и {general.change_number(temp_btc * 4)} ₿. Возвращайтесь через {user[0]["Bonus"]} '
-                                     f'ч.')
+                                     f'и {general.change_number(temp_btc * 4)} ₿. Возвращайтесь через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"]*60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"]*60))}')
             UserAction.save_user(message.from_id, user)
         else:
             await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вам еще недоступен бонус! Возвращайтесь '
-                                 f'через {user[0]["Bonus"]} ч.')
+                                 f'через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"]*60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"]*60))}')
 
 
 @bot.on.message(text=["Баланс", "баланс"])

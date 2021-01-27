@@ -1,5 +1,6 @@
 import logging
 import pymysql
+import pymysqlpool
 from pymysql import MySQLError
 import configparser
 
@@ -10,8 +11,13 @@ config.read("config/mysql.ini")
 class MySQL:
     # Connection
     try:
-        connection = pymysql.connect(host=config["DATA"]["SQL_HOST"], user=config["DATA"]["SQL_USER"],
-                                     password=config["DATA"]["SQL_PASS"], database=config["DATA"]["SQL_DB"])
+        pool = pymysqlpool.ConnectionPool(host=config["DATA"]["SQL_HOST"], user=config["DATA"]["SQL_USER"],
+                                          password=config["DATA"]["SQL_PASS"], database=config["DATA"]["SQL_DB"],
+                                          autocommit=True)
+        connection = pool.get_connection()
+        connection_second_timer = pool.get_connection()
+        connection_minute_timer = pool.get_connection()
+        connection_hour_timer = pool.get_connection()
         print(f'MySQL success connected!')
     except MySQLError as e:
         logging.log(logging.FATAL, e)
@@ -28,7 +34,8 @@ class UserAction(MySQL):
                 else:
                     sql = f"INSERT INTO %s (VK_ID) VALUES (%s)"
                     cursor.execute(sql % (table[0], vk_id))
-        self.connection.commit()
+            cursor.close()
+        # self.connection.commit()
 
     # Function getting user
     def get_user(self, vk_id):
@@ -39,6 +46,7 @@ class UserAction(MySQL):
             sql = "SELECT * FROM %s WHERE `VK_ID`=%s"
             cursor.execute(sql % (config["USERS_TABLES"]["USERS_PROPERTY"], vk_id))
             result += cursor.fetchall()
+            cursor.close()
             if len(result) == 0:
                 return False
             else:
@@ -67,7 +75,8 @@ class UserAction(MySQL):
                         continue
                     else:
                         cursor.execute(sql % (config["USERS_TABLES"]["USERS_PROPERTY"], row, column, vk_id))
-        self.connection.commit()
+            cursor.close()
+        # self.connection.commit()
 
     # Function getting user property
     def get_user_property(self, vk_id):
@@ -75,6 +84,7 @@ class UserAction(MySQL):
             sql = "SELECT * FROM %s WHERE `VK_ID`=%s"
             cursor.execute(sql % (config["USERS_TABLES"]["USERS_PROPERTY"], vk_id))
             result = cursor.fetchall()
+            cursor.close()
             if len(result) == 0:
                 return False
             else:
@@ -86,6 +96,7 @@ class UserAction(MySQL):
             sql = "SELECT * FROM %s WHERE `ID`=%s"
             cursor.execute(sql % (config["USERS_TABLES"]["USERS"], game_id))
             result = cursor.fetchall()
+            cursor.close()
             if len(result) == 0:
                 return False
             else:
@@ -97,6 +108,7 @@ class UserAction(MySQL):
             sql = "SELECT * FROM %s WHERE `RankLevel`>6"
             cursor.execute(sql % config["USERS_TABLES"]["USERS"])
             result = cursor.fetchall()
+            cursor.close()
             if len(result) == 0:
                 return False
             else:
@@ -110,6 +122,7 @@ class MainData(MySQL):
             sql = "SELECT * FROM %s"
             cursor.execute(sql % table)
             result = cursor.fetchall()
+            cursor.close()
             if len(result) == 0:
                 return False
             else:
@@ -128,6 +141,7 @@ class MainData(MySQL):
                     sql = "SELECT * FROM %s"
                     cursor.execute(sql % table[0])
                     result.append(cursor.fetchall())
+            cursor.close()
             if len(result) == 0:
                 return False
             else:
@@ -139,7 +153,8 @@ class MainData(MySQL):
             sql = f"INSERT INTO %s (%s, %s) VALUES ('%s', %s)"
             cursor.execute(sql % (table, args_list[0], args_list[1], kwargs[args_list[0]], kwargs[args_list[1]]))
             logging.debug(f'New property "{kwargs[args_list[0]]} - {kwargs[args_list[1]]}$" added!')
-        self.connection.commit()
+            cursor.close()
+        # self.connection.commit()
 
     def add_business(self, **kwargs):
         with self.connection.cursor() as cursor:
@@ -151,7 +166,8 @@ class MainData(MySQL):
                 kwargs[args_list[2]]))
             logging.debug(f'New business "{kwargs[args_list[0]]} - price: {kwargs[args_list[1]]}$, workers: '
                           f'{kwargs[args_list[2]]}" added!')
-        self.connection.commit()
+            cursor.close()
+        # self.connection.commit()
 
     def add_pet(self, **kwargs):
         with self.connection.cursor() as cursor:
@@ -163,7 +179,8 @@ class MainData(MySQL):
                 kwargs[args_list[3]], kwargs[args_list[4]]))
             logging.debug(f'New pet "{kwargs[args_list[0]]} - price: {kwargs[args_list[1]]}$, min: '
                           f'{kwargs[args_list[2]]}, max: {kwargs[args_list[3]]}, icon: {kwargs[args_list[4]]}" added!')
-        self.connection.commit()
+            cursor.close()
+        # self.connection.commit()
 
     def add_farm(self, **kwargs):
         with self.connection.cursor() as cursor:
@@ -175,13 +192,15 @@ class MainData(MySQL):
                 kwargs[args_list[2]]))
             logging.debug(f'New farm "{kwargs[args_list[0]]} - price: {kwargs[args_list[1]]}$, btc per hour: '
                           f'{kwargs[args_list[2]]}" added!')
-        self.connection.commit()
+            cursor.close()
+        # self.connection.commit()
 
     def get_settings(self):
         with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
             sql = "SELECT * FROM %s"
             cursor.execute(sql % config["MAIN_TABLES"]["SETTINGS"])
             result = cursor.fetchall()
+            cursor.close()
             if len(result) == 0:
                 return False
             else:
@@ -202,13 +221,15 @@ class MainData(MySQL):
                     sql % (config["MAIN_TABLES"]["REPORTS"], args_list[0], args_list[1], kwargs[args_list[0]],
                            kwargs[args_list[1]]))
                 logging.debug(f'New report: {kwargs[args_list[0]]}. Asked: {kwargs[args_list[1]]}')
-        self.connection.commit()
+            cursor.close()
+        # self.connection.commit()
 
     def get_reports(self):
         with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
             sql = "SELECT * FROM %s"
             cursor.execute(sql % config["MAIN_TABLES"]["REPORTS"])
             result = cursor.fetchall()
+            cursor.close()
             if len(result) == 0:
                 return False
             else:

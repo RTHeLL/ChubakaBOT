@@ -12,11 +12,8 @@ MainData = classes.mysql.MainData()
 class Timers:
     @staticmethod
     def hour_timer():
-        with MySQL.connection.cursor(pymysql.cursors.DictCursor) as cursor:
-            # Bonus
-            sql = f"UPDATE users SET Bonus=Bonus-1 WHERE Bonus>0"
-            cursor.execute(sql)
-
+        MySQL.connection_hour_timer.ping(reconnect=True)
+        with MySQL.connection_hour_timer.cursor(pymysql.cursors.DictCursor) as cursor:
             # Farms
             sql = "SELECT u.VK_ID, u.BTC_In_Farms, c.Farms, c.FarmsType " \
                   "FROM users_property c " \
@@ -65,12 +62,19 @@ class Timers:
             # Energy
             sql = f"UPDATE users SET Energy=Energy+1 WHERE Energy<30"
             cursor.execute(sql)
-        MySQL.connection.commit()
+            cursor.close()
+        # MySQL.connection.commit()
 
     @staticmethod
     def minute_timer():
-        with MySQL.connection.cursor(pymysql.cursors.DictCursor) as cursor:
+        MySQL.connection_minute_timer.ping(reconnect=True)
+        with MySQL.connection_minute_timer.cursor() as cursor:
             # Pet fatigue
             sql = f"UPDATE users SET Pet_Fatigue=Pet_Fatigue-1 WHERE Pet_Fatigue>0"
             cursor.execute(sql)
-        MySQL.connection.commit()
+
+            # Bonus
+            sql = f"UPDATE users SET Bonus=Bonus-1 WHERE Bonus>0"
+            cursor.execute(sql)
+
+            cursor.close()
