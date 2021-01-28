@@ -714,7 +714,7 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
                                              f'{general.change_number(shop_data[10][int(product) - 1]["Price"])}$')
         elif category.lower() == 'кейсы':
             if product is None:
-                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), кейсы: {temp_text}'
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), кейсы: {temp_text}\n'
                                      f'🔸 1. Bronze Case [10.000$]\n'
                                      f'🔸 2. Silver Case [60.000$]\n'
                                      f'🔸 3. Gold Case [150.000$]\n'
@@ -1602,6 +1602,8 @@ async def pet_handler(message: Message, info: UsersUserXtrCounters, action: Opti
                     found_money = random.randint(pets[user[1]["Pet"] - 1]["PetMinMoney"],
                                                  pets[user[1]["Pet"] - 1]["PetMaxMoney"])
                     chance_loss = random.randint(1, 5)
+                    temp_hunger = random.randint(1, 15)
+                    temp_joy = random.randint(1, 15)
                     if chance_loss == 1:
                         await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш питомец потерялся в походе 😔')
                         user[0]["Pet_Fatigue"] = 0
@@ -1613,8 +1615,14 @@ async def pet_handler(message: Message, info: UsersUserXtrCounters, action: Opti
                     else:
                         user[0]["Money"] += found_money
                         user[0]["Pet_Fatigue"] = 60
-                        user[0]["Pet_Joy"] -= random.randint(1, 15)
-                        user[0]["Pet_Hunger"] -= random.randint(1, 15)
+                        if user[0]["Pet_Joy"]-temp_joy < 0:
+                            user[0]["Pet_Joy"] = 0
+                        else:
+                            user[0]["Pet_Joy"] -= temp_joy
+                        if user[0]["Pet_Hunger"]-temp_hunger < 0:
+                            user[0]["Pet_Hunger"] = 0
+                        else:
+                            user[0]["Pet_Hunger"] -= temp_hunger
                         UserAction.save_user(message.from_id, user)
                         await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш питомец нашел в походе {general.change_number(found_money)}$')
         elif action == 'найти':
