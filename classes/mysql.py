@@ -234,3 +234,11 @@ class MainData(MySQL):
                 return False
             else:
                 return result
+
+    def add_chat(self, **kwargs):
+        with self.connection.cursor() as cursor:
+            args_list = list(kwargs.keys())
+            sql = "INSERT INTO %s (%s) VALUES (%s)"
+            cursor.execute(sql % (config["MAIN_TABLES"]["CHATS"], args_list[0], kwargs[args_list[0]]))
+            logging.debug(f'New chat: {kwargs[args_list[0]]}')
+            cursor.close()

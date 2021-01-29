@@ -902,42 +902,42 @@ async def bonus_handler(message: Message, info: UsersUserXtrCounters):
             temp_btc = random.randint(1, 50)
             if user[0]["RankLevel"] == 1:
                 user[0]["Money"] += temp_money
-                user[0]["Bonus"] = 24*60
+                user[0]["Bonus"] = 24 * 60
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш сегодняшний бонус '
                                      f'{general.change_number(temp_money)} $. '
-                                     f'Возвращайтесь через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"]*60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"]*60))}.')
+                                     f'Возвращайтесь через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"] * 60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"] * 60))}.')
             elif user[0]["RankLevel"] == 2:
                 user[0]["Money"] += temp_money * 2
                 user[0]["BTC"] += temp_btc
-                user[0]["Bonus"] = 12*60
+                user[0]["Bonus"] = 12 * 60
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш сегодняшний бонус '
                                      f'{general.change_number(temp_money * 2)} $ '
-                                     f'и {general.change_number(temp_btc)} ₿. Возвращайтесь через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"]*60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"]*60))}')
+                                     f'и {general.change_number(temp_btc)} ₿. Возвращайтесь через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"] * 60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"] * 60))}')
             elif user[0]["RankLevel"] == 3:
                 user[0]["Money"] += temp_money * 3
                 user[0]["BTC"] += temp_btc * 2
-                user[0]["Bonus"] = 6*60
+                user[0]["Bonus"] = 6 * 60
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш сегодняшний бонус '
                                      f'{general.change_number(temp_money * 3)} $ '
-                                     f'и {general.change_number(temp_btc * 2)} ₿. Возвращайтесь через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"]*60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"]*60))}')
+                                     f'и {general.change_number(temp_btc * 2)} ₿. Возвращайтесь через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"] * 60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"] * 60))}')
             elif user[0]["RankLevel"] == 4:
                 user[0]["Money"] += temp_money * 4
                 user[0]["BTC"] += temp_btc * 3
-                user[0]["Bonus"] = 3*60
+                user[0]["Bonus"] = 3 * 60
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш сегодняшний бонус '
                                      f'{general.change_number(temp_money * 4)} $ '
-                                     f'и {general.change_number(temp_btc * 3)} ₿. Возвращайтесь через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"]*60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"]*60))}')
+                                     f'и {general.change_number(temp_btc * 3)} ₿. Возвращайтесь через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"] * 60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"] * 60))}')
             elif user[0]["RankLevel"] >= 5:
                 user[0]["Money"] += temp_money * 5
                 user[0]["BTC"] += temp_btc * 4
-                user[0]["Bonus"] = 1*60
+                user[0]["Bonus"] = 1 * 60
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш сегодняшний бонус '
                                      f'{general.change_number(temp_money * 5)} $ '
-                                     f'и {general.change_number(temp_btc * 4)} ₿. Возвращайтесь через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"]*60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"]*60))}')
+                                     f'и {general.change_number(temp_btc * 4)} ₿. Возвращайтесь через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"] * 60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"] * 60))}')
             UserAction.save_user(message.from_id, user)
         else:
             await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вам еще недоступен бонус! Возвращайтесь '
-                                 f'через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"]*60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"]*60))}')
+                                 f'через {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["Bonus"] * 60)) if user[0]["Bonus"] >= 60 else time.strftime("%M мин.", time.gmtime(user[0]["Bonus"] * 60))}')
 
 
 @bot.on.message(text=["Баланс", "баланс"])
@@ -1605,7 +1605,8 @@ async def pet_handler(message: Message, info: UsersUserXtrCounters, action: Opti
                     temp_hunger = random.randint(1, 15)
                     temp_joy = random.randint(1, 15)
                     if chance_loss == 1:
-                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш питомец потерялся в походе 😔')
+                        await message.answer(
+                            f'@id{message.from_id} ({user[0]["Name"]}), Ваш питомец потерялся в походе 😔')
                         user[0]["Pet_Fatigue"] = 0
                         user[0]["Pet_Hunger"] = 0
                         user[0]["Pet_Joy"] = 0
@@ -1615,16 +1616,17 @@ async def pet_handler(message: Message, info: UsersUserXtrCounters, action: Opti
                     else:
                         user[0]["Money"] += found_money
                         user[0]["Pet_Fatigue"] = 60
-                        if user[0]["Pet_Joy"]-temp_joy < 0:
+                        if user[0]["Pet_Joy"] - temp_joy < 0:
                             user[0]["Pet_Joy"] = 0
                         else:
                             user[0]["Pet_Joy"] -= temp_joy
-                        if user[0]["Pet_Hunger"]-temp_hunger < 0:
+                        if user[0]["Pet_Hunger"] - temp_hunger < 0:
                             user[0]["Pet_Hunger"] = 0
                         else:
                             user[0]["Pet_Hunger"] -= temp_hunger
                         UserAction.save_user(message.from_id, user)
-                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш питомец нашел в походе {general.change_number(found_money)}$')
+                        await message.answer(
+                            f'@id{message.from_id} ({user[0]["Name"]}), Ваш питомец нашел в походе {general.change_number(found_money)}$')
         elif action == 'найти':
             if user[1]["Pet"] != 0:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас уже есть питомец')
@@ -1634,7 +1636,8 @@ async def pet_handler(message: Message, info: UsersUserXtrCounters, action: Opti
                 else:
                     chance_found = random.randint(0, 70)
                     if chance_found == 1:
-                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы нашли питомца «{pets[0]["PetName"]}»')
+                        await message.answer(
+                            f'@id{message.from_id} ({user[0]["Name"]}), Вы нашли питомца «{pets[0]["PetName"]}»')
                         user[0]["Energy"] -= 1
                         user[0]["Pet_Fatigue"] = 0
                         user[0]["Pet_Hunger"] = 0
@@ -1645,9 +1648,10 @@ async def pet_handler(message: Message, info: UsersUserXtrCounters, action: Opti
                     else:
                         user[0]["Energy"] -= 1
                         UserAction.save_user(message.from_id, user)
-                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы не смогли найти питомца 😔\n'
-                                             f'💡 Ваша энергия: {user[0]["Energy"]}\n'
-                                             f'Попробуйте еще раз')
+                        await message.answer(
+                            f'@id{message.from_id} ({user[0]["Name"]}), Вы не смогли найти питомца 😔\n'
+                            f'💡 Ваша энергия: {user[0]["Energy"]}\n'
+                            f'Попробуйте еще раз')
         elif action == 'поиграть':
             if user[1]["Pet"] == 0:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет питомца.\n'
@@ -1655,7 +1659,8 @@ async def pet_handler(message: Message, info: UsersUserXtrCounters, action: Opti
                                      f'или используйте магазин для покупки')
             else:
                 if user[0]["Pet_Joy"] == 100:
-                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш питомец и так в хорошем настроении')
+                    await message.answer(
+                        f'@id{message.from_id} ({user[0]["Name"]}), Ваш питомец и так в хорошем настроении')
                 elif user[0]["Energy"] <= 0:
                     await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас недостаточно энергии 😔')
                 else:
@@ -1672,15 +1677,15 @@ async def pet_handler(message: Message, info: UsersUserXtrCounters, action: Opti
             else:
                 if user[0]["Pet_Hunger"] == 100:
                     await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваш питомец и так сыт')
-                elif user[0]["Money"] < user[1]["PetLevel"]*3:
+                elif user[0]["Money"] < user[1]["PetLevel"] * 3:
                     await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас недостаточно денег, чтобы '
                                          f'покормить питомца 😔')
                 else:
-                    user[0]["Money"] -= user[1]["PetLevel"]*3
+                    user[0]["Money"] -= user[1]["PetLevel"] * 3
                     user[0]["Pet_Hunger"] = 100
                     UserAction.save_user(message.from_id, user)
                     await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы покормили своего питомца за '
-                                         f'{general.change_number(user[1]["PetLevel"]*3)}$\n'
+                                         f'{general.change_number(user[1]["PetLevel"] * 3)}$\n'
                                          f'Теперь он сыт и может отправляться в поход 🎉')
 
 
@@ -2065,48 +2070,111 @@ async def cases_handler(message: Message, info: UsersUserXtrCounters, case_type:
                              f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
     else:
         user = UserAction.get_user(message.from_id)
+        case_prizes = [['exp', 'money'],
+                       ['exp', 'money', 'btc'],
+                       ['exp', 'money', 'btc', 'rating'],
+                       ['exp', 'money', 'btc', 'rating', 'pet', 'business']]
         if case_type is None:
             await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Ваши кейсы:\n'
                                  f'🥉 Bronze Case {general.change_number(user[0]["Bronze_Case"])} шт.\n'
                                  f'🥈 Silver Case {general.change_number(user[0]["Silver_Case"])} шт.\n'
                                  f'🥇 Gold Case {general.change_number(user[0]["Gold_Case"])} шт.\n'
-                                 f'🥇 Premium Case {general.change_number(user[0]["Premium_Case"])} шт.\n\n'
+                                 f'🏅 Premium Case {general.change_number(user[0]["Premium_Case"])} шт.\n\n'
                                  f'Команды доступные для кейсов:\n'
                                  f'кейсы [тип кейса (bronze, silver, gold, premium)] открыть')
         elif case_type == 'bronze':
             if action is None:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас '
                                      f'{general.change_number(user[0]["Bronze_Case"])} 🥉 Bronze Case\n\n'
+                                     f'Что может выпасть:\n'
+                                     f'- Опыт\n'
+                                     f'- Деньги\n\n'
                                      f'Чтобы открыть, используйте:\n'
                                      f'кейсы bronze открыть')
             elif action == 'открыть':
                 if user[0]["Bronze_Case"] < 1:
-                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет ни одного Bronze Case 😔\n'
-                                         f'Для покупки, используйте: магазин кейсы')
+                    await message.answer(
+                        f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет ни одного Bronze Case 😔\n'
+                        f'Для покупки, используйте: магазин кейсы')
                 else:
                     user[0]["Bronze_Case"] -= 1
+                    if random.choice(case_prizes[0]) == 'exp':
+                        if random.randint(1, 1000) == 1:
+                            case_prize = random.randint(10, 50)
+                            user[0]["EXP"] += case_prize
+                            case_prize = f'опыт ({general.change_number(case_prize)}) 🔥'
+                        else:
+                            case_prize = random.randint(1, 20)
+                            user[0]["EXP"] += case_prize
+                            case_prize = f'опыт ({general.change_number(case_prize)}) 🔥'
+                    else:
+                        if random.randint(1, 1000) == 1:
+                            case_prize = random.randint(6000, 15000)
+                            user[0]["Money"] += case_prize
+                            case_prize = f'деньги ({general.change_number(case_prize)}) 💵'
+                        else:
+                            case_prize = random.randint(500, 9000)
+                            user[0]["Money"] += case_prize
+                            case_prize = f'деньги ({general.change_number(case_prize)}) 💵'
                     UserAction.save_user(message.from_id, user)
                     await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы открыли Bronze Case 🎉\n'
-                                         f'Ваш приз: ')
+                                         f'Ваш приз: {case_prize}')
         elif case_type == 'silver':
             if action is None:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас '
                                      f'{general.change_number(user[0]["Silver_Case"])} 🥈 Silver Case\n\n'
+                                     f'Что может выпасть:\n'
+                                     f'- Опыт\n'
+                                     f'- Деньги\n'
+                                     f'- Биткоины\n\n'
                                      f'Чтобы открыть, используйте:\n'
                                      f'кейсы silver открыть')
             elif action == 'открыть':
                 if user[0]["Silver_Case"] < 1:
-                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет ни одного Silver Case 😔\n'
-                                         f'Для покупки, используйте: магазин кейсы')
+                    await message.answer(
+                        f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет ни одного Silver Case 😔\n'
+                        f'Для покупки, используйте: магазин кейсы')
                 else:
                     user[0]["Silver_Case"] -= 1
+                    if random.choice(case_prizes[1]) == 'exp':
+                        if random.randint(1, 1000) == 1:
+                            case_prize = random.randint(50, 100)
+                            user[0]["EXP"] += case_prize
+                            case_prize = f'опыт ({general.change_number(case_prize)}) 🔥'
+                        else:
+                            case_prize = random.randint(10, 50)
+                            user[0]["EXP"] += case_prize
+                            case_prize = f'опыт ({general.change_number(case_prize)}) 🔥'
+                    elif random.choice(case_prizes[1]) == 'money':
+                        if random.randint(1, 1000) == 1:
+                            case_prize = random.randint(35000, 65000)
+                            user[0]["Money"] += case_prize
+                            case_prize = f'деньги ({general.change_number(case_prize)}) 💵'
+                        else:
+                            case_prize = random.randint(10000, 59000)
+                            user[0]["Money"] += case_prize
+                            case_prize = f'деньги ({general.change_number(case_prize)}) 💵'
+                    else:
+                        if random.randint(1, 1000) == 1:
+                            case_prize = random.randint(10, 100)
+                            user[0]["BTC"] += case_prize
+                            case_prize = f'биткоины ({general.change_number(case_prize)}) ₿'
+                        else:
+                            case_prize = random.randint(1, 10)
+                            user[0]["BTC"] += case_prize
+                            case_prize = f'биткоины ({general.change_number(case_prize)}) ₿'
                     UserAction.save_user(message.from_id, user)
                     await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы открыли Silver Case 🎉\n'
-                                         f'Ваш приз: ')
+                                         f'Ваш приз: {case_prize}')
         elif case_type == 'gold':
             if action is None:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас '
                                      f'{general.change_number(user[0]["Gold_Case"])} 🥇 Gold Case\n\n'
+                                     f'Что может выпасть:\n'
+                                     f'- Опыт\n'
+                                     f'- Деньги\n'
+                                     f'- Биткоины\n'
+                                     f'- Рейтинг\n\n'
                                      f'Чтобы открыть, используйте:\n'
                                      f'кейсы gold открыть')
             elif action == 'открыть':
@@ -2115,24 +2183,119 @@ async def cases_handler(message: Message, info: UsersUserXtrCounters, case_type:
                                          f'Для покупки, используйте: магазин кейсы')
                 else:
                     user[0]["Gold_Case"] -= 1
+                    if random.choice(case_prizes[2]) == 'exp':
+                        if random.randint(1, 1000) == 1:
+                            case_prize = random.randint(100, 300)
+                            user[0]["EXP"] += case_prize
+                            case_prize = f'опыт ({general.change_number(case_prize)}) 🔥'
+                        else:
+                            case_prize = random.randint(50, 100)
+                            user[0]["EXP"] += case_prize
+                            case_prize = f'опыт ({general.change_number(case_prize)}) 🔥'
+                    elif random.choice(case_prizes[2]) == 'money':
+                        if random.randint(1, 1000) == 1:
+                            case_prize = random.randint(100000, 155000)
+                            user[0]["Money"] += case_prize
+                            case_prize = f'деньги ({general.change_number(case_prize)}) 💵'
+                        else:
+                            case_prize = random.randint(50000, 149000)
+                            user[0]["Money"] += case_prize
+                            case_prize = f'деньги ({general.change_number(case_prize)}) 💵'
+                    elif random.choice(case_prizes[2]) == 'btc':
+                        if random.randint(1, 1000) == 1:
+                            case_prize = random.randint(30, 100)
+                            user[0]["BTC"] += case_prize
+                            case_prize = f'биткоины ({general.change_number(case_prize)}) ₿'
+                        else:
+                            case_prize = random.randint(5, 30)
+                            user[0]["BTC"] += case_prize
+                            case_prize = f'биткоины ({general.change_number(case_prize)}) ₿'
+                    else:
+                        if random.randint(1, 1000) == 1:
+                            case_prize = random.randint(2, 3)
+                            user[0]["Rating"] += case_prize
+                            case_prize = f'рейтинг ({general.change_number(case_prize)}) 👑'
+                        else:
+                            case_prize = random.randint(1, 2)
+                            user[0]["Rating"] += case_prize
+                            case_prize = f'рейтинг ({general.change_number(case_prize)}) 👑'
                     UserAction.save_user(message.from_id, user)
                     await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы открыли Gold Case 🎉\n'
-                                         f'Ваш приз: ')
+                                         f'Ваш приз: {case_prize}')
         elif case_type == 'premium':
             if action is None:
-                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас '                                     
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас '
                                      f'{general.change_number(user[0]["Premium_Case"])} 🥇 Premium Case\n\n'
+                                     f'Что может выпасть:\n'
+                                     f'- Опыт\n'
+                                     f'- Деньги\n'
+                                     f'- Биткоины\n'
+                                     f'- Рейтинг\n'
+                                     f'- 🎖 Лучший питомец\n'
+                                     f'- 🏆 Лучший бизнес\n'
                                      f'Чтобы открыть, используйте:\n'
                                      f'кейсы premium открыть')
             elif action == 'открыть':
                 if user[0]["Premium_Case"] < 1:
-                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет ни одного Premium Case 😔\n'
-                                         f'Для покупки, используйте: донат')
+                    await message.answer(
+                        f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет ни одного Premium Case 😔\n'
+                        f'Для покупки, используйте: донат')
                 else:
                     user[0]["Premium_Case"] -= 1
+
+                    if random.randint(1, 100000) == 1:
+                        user[0]["Pet_Hunger"] = 100
+                        user[0]["Pet_Joy"] = 100
+                        user[0]["Pet_Fatigue"] = 0
+                        user[1]["PetLevel"] = 1
+                        user[1]["Pet"] = 14
+                        case_prize = f'лучший питомец 🦠 Коронавирус'
+                    elif random.randint(1, 1000000) == 1:
+                        user[0]["Workers_In_Business"] = 0
+                        user[0]["Money_In_Business"] = 0
+                        user[1]["Business"] = 21
+                        user[1]["BusinessLevel"] = 1
+                        case_prize = f'лучший бизнес Межпланетный экспресс'
+                    elif random.choice(case_prizes[3]) == 'exp':
+                        if random.randint(1, 1000) == 1:
+                            case_prize = random.randint(300, 600)
+                            user[0]["EXP"] += case_prize
+                            case_prize = f'опыт ({general.change_number(case_prize)}) 🔥'
+                        else:
+                            case_prize = random.randint(100, 300)
+                            user[0]["EXP"] += case_prize
+                            case_prize = f'опыт ({general.change_number(case_prize)}) 🔥'
+                    elif random.choice(case_prizes[3]) == 'money':
+                        if random.randint(1, 1000) == 1:
+                            case_prize = random.randint(200000, 400000)
+                            user[0]["Money"] += case_prize
+                            case_prize = f'деньги ({general.change_number(case_prize)}) 💵'
+                        else:
+                            case_prize = random.randint(100000, 300000)
+                            user[0]["Money"] += case_prize
+                            case_prize = f'деньги ({general.change_number(case_prize)}) 💵'
+                    elif random.choice(case_prizes[3]) == 'btc':
+                        if random.randint(1, 1000) == 1:
+                            case_prize = random.randint(50, 150)
+                            user[0]["BTC"] += case_prize
+                            case_prize = f'биткоины ({general.change_number(case_prize)}) ₿'
+                        else:
+                            case_prize = random.randint(10, 50)
+                            user[0]["BTC"] += case_prize
+                            case_prize = f'биткоины ({general.change_number(case_prize)}) ₿'
+                    else:
+                        if random.randint(1, 1000) == 1:
+                            case_prize = random.randint(3, 5)
+                            user[0]["Rating"] += case_prize
+                            case_prize = f'рейтинг ({general.change_number(case_prize)}) 👑'
+                        else:
+                            case_prize = random.randint(1, 3)
+                            user[0]["Rating"] += case_prize
+                            case_prize = f'рейтинг ({general.change_number(case_prize)}) 👑'
+
                     UserAction.save_user(message.from_id, user)
                     await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы открыли Premium Case 🎉\n'
-                                         f'Ваш приз: ')
+                                         f'Ваш приз: {case_prize}')
 
 
 # Admin commands
@@ -2391,6 +2554,14 @@ async def admin_report_handler(message: Message, info: UsersUserXtrCounters, act
 async def group_join_handler(event: GroupTypes.GroupJoin):
     await bot.api.messages.send(peer_id=event.object.user_id, message="Спасибо за подписку!", random_id=0,
                                 keyboard=START_KEYBOARD)
+
+
+# noinspection PyTypeChecker
+# @bot.on.raw_event(GroupEventType.MESSAGE_NEW, dataclass=GroupTypes.MessageNew)
+# async def add_in_chat_handler(event: GroupTypes.MessageNew):
+#     print(event.object.message.peer_id)
+#     MainData.add_chat(ChatID=event.object.message.chat_id)
+#     await bot.api.messages.send(peer_id=event.object.message.peer_id, message=event.object.message.title, random_id=0)
 
 
 bot.labeler.message_view.register_middleware(NoBotMiddleware())
