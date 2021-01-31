@@ -1,6 +1,9 @@
+import asyncio
 import configparser
 import logging
 import random
+from threading import Thread
+
 import time
 
 import math
@@ -10,8 +13,8 @@ from typing import Optional, Any, List
 # Import VKBottle
 from vkbottle import GroupEventType, GroupTypes, Keyboard, ABCHandler, ABCView, \
     BaseMiddleware, \
-    CtxStorage, Text
-from vkbottle.bot import Bot, Message
+    CtxStorage, Text, EMPTY_KEYBOARD
+from vkbottle.bot import Bot, Message, rules
 from vkbottle_types.objects import UsersUserXtrCounters
 
 # Import classes
@@ -36,9 +39,9 @@ general = data.general.General()
 logging.basicConfig(filename="logs/logs.log")
 logging.basicConfig(level=logging.INFO)
 
-# VK ConnectionTypeError: __init__() takes 1 positional argument but 5 were given
-
+# Tokens
 bot = Bot(config["VK_DATA"]["GROUP_TOKEN"])
+widget = Bot(config["VK_DATA"]["WIDGET_TOKEN"])
 
 # Keyboards
 START_KEYBOARD = (
@@ -220,7 +223,18 @@ timer.RepeatedTimer(3600, data.timers.Timers.hour_timer).start()
 timer.RepeatedTimer(60, data.timers.Timers.minute_timer).start()
 
 
-# User commands
+@bot.on.chat_message(rules.ChatActionRule("chat_invite_user"))
+async def test_invite_handler(message: Message, info: UsersUserXtrCounters):
+    MainData.add_chat(ChatID=message.peer_id)
+    await message.answer(f'Всем привет, я Чубака!\n'
+                         f'Напишите "помощь", чтобы узнать мои команды', keyboard=EMPTY_KEYBOARD)
+
+# @bot.on.message(rules.ChatActionRule("chat_kick_user"))
+# async def test_kick_handler(message: Message, info: UsersUserXtrCounters):
+#     print(1)
+
+
+# User commandsMessageEvent
 @bot.on.message(text=["Начать", "Старт", "начать", "старт"])
 @bot.on.message(payload={"cmd": "cmd_start"})
 async def start_handler(message: Message, info: UsersUserXtrCounters):
@@ -243,51 +257,119 @@ async def help_handler(message: Message, info: UsersUserXtrCounters):
         await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: {info.first_name}\n"
                              f"Ваш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
     else:
-        await message.answer(f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), мои команды:"
-                             f"\n🎉 Развлекательные:\n"
-                             f"⠀⠀↪ Переверни [фраза]\n"
-                             f"⠀⠀🔮 Шар [фраза]\n"
-                             f"⠀⠀📊 Инфа [фраза]\n"
-                             f"⠀⠀⚖ Выбери [фраза] или [фраза2]\n"
-                             f"⠀⠀📊 Курс\n"
-                             f"⠀⠀💖 Брак\n"
-                             f"⠀⠀💔 Развод\n\n"
-                             f"💼 Бизнес:\n"
-                             f"⠀⠀📈 Бизнес\n"
-                             f"⠀⠀💵 Бизнес снять [сумма]\n"
-                             f"⠀⠀👷 Бизнес нанять [кол-во]\n"
-                             f"⠀⠀✅ Бизнес улучшить\n\n"
-                             f"🌽 Питомцы:\n"
-                             f"⠀⠀🐒 Питомец\n"
-                             f"⠀⠀🐪 Питомец поход\n"
-                             f"⠀⠀🌟 Питомец улучшить\n\n"
-                             f"🚀 Игры:\n"
-                             f"⠀⠀🎲 Кубик\n"
-                             f"⠀⠀🎰 Казино [ставка]\n"
-                             f"⠀⠀📈 Трейд [вверх/вниз] [ставка]\n"
-                             f"⠀⠀🥛 Стаканчик [1-3] [ставка]\n"
-                             f"⠀⠀🦅 Монетка\n\n"
-                             f"🔥 Полезное:\n"
-                             f"⠀⠀📒 Профиль\n"
-                             f"⠀⠀🛍 Магазин\n"
-                             f"⠀⠀💲 Баланс\n"
-                             f"⠀⠀💰 Банк\n"
-                             f"⠀⠀📦 Кейсы\n"
-                             f"⠀⠀🔋 Ферма\n"
-                             f"⠀⠀💎 Бонус\n\n"
-                             f"💡 Разное:\n"
-                             f"⠀⠀⚔ Клан\n"
-                             f"⠀⠀🍹 Зелья\n"
-                             f"⠀⠀👑 Рейтинг - ваш рейтинг\n"
-                             f"⠀⠀🏆 Топ\n"
-                             f"⠀⠀📠 Реши [пример]\n"
-                             f"⠀⠀✒ Ник [имя]\n"
-                             f"⠀⠀💸 Продать [предмет]\n"
-                             f"⠀⠀🤝 Передать [ID] [сумма]\n"
-                             f"⠀⠀👥 Реф\n"
-                             f"⠀⠀🏆 Реф топ\n"
-                             f"⠀⠀🎁 Донат\n\n"
-                             f"🆘 Репорт [фраза] - ошибки или пожелания", keyboard=MAIN_KEYBOARD)
+        chats = {ID["ChatID"] for ID in MainData.get_chats()}
+        if message.peer_id in chats:
+            await message.answer(f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), мои команды:"
+                                 f"\n🎉 Развлекательные:\n"
+                                 f"⠀⠀↪ Переверни [фраза]\n"
+                                 f"⠀⠀🔮 Шар [фраза]\n"
+                                 f"⠀⠀📊 Инфа [фраза]\n"
+                                 f"⠀⠀⚖ Выбери [фраза] или [фраза2]\n"
+                                 f"⠀⠀📊 Курс\n"
+                                 f"⠀⠀💖 Брак\n"
+                                 f"⠀⠀💔 Развод\n\n"
+                                 f"💼 Бизнес:\n"
+                                 f"⠀⠀📈 Бизнес\n"
+                                 f"⠀⠀💵 Бизнес снять [сумма]\n"
+                                 f"⠀⠀👷 Бизнес нанять [кол-во]\n"
+                                 f"⠀⠀✅ Бизнес улучшить\n\n"
+                                 f"🌽 Питомцы:\n"
+                                 f"⠀⠀🐒 Питомец\n"
+                                 f"⠀⠀🐪 Питомец поход\n"
+                                 f"⠀⠀🌟 Питомец улучшить\n\n"
+                                 f"🚀 Игры:\n"
+                                 f"⠀⠀🎲 Кубик\n"
+                                 f"⠀⠀🎰 Казино [ставка]\n"
+                                 f"⠀⠀📈 Трейд [вверх/вниз] [ставка]\n"
+                                 f"⠀⠀🥛 Стаканчик [1-3] [ставка]\n"
+                                 f"⠀⠀🦅 Монетка\n\n"
+                                 f"🔥 Полезное:\n"
+                                 f"⠀⠀📒 Профиль\n"
+                                 f"⠀⠀🛍 Магазин\n"
+                                 f"⠀⠀💲 Баланс\n"
+                                 f"⠀⠀💰 Банк\n"
+                                 f"⠀⠀📦 Кейсы\n"
+                                 f"⠀⠀🔋 Ферма\n"
+                                 f"⠀⠀💎 Бонус\n\n"
+                                 f"💡 Разное:\n"
+                                 f"⠀⠀⚔ Клан\n"
+                                 f"⠀⠀🍹 Зелья\n"
+                                 f"⠀⠀👑 Рейтинг - ваш рейтинг\n"
+                                 f"⠀⠀🏆 Топ\n"
+                                 f"⠀⠀📠 Реши [пример]\n"
+                                 f"⠀⠀✒ Ник [имя]\n"
+                                 f"⠀⠀💸 Продать [предмет]\n"
+                                 f"⠀⠀🤝 Передать [ID] [сумма]\n"
+                                 f"⠀⠀👥 Реф\n"
+                                 f"⠀⠀🏆 Реф топ\n"
+                                 f"⠀⠀🎁 Донат\n\n"
+                                 f"🆘 Репорт [фраза] - ошибки или пожелания",
+                                 keyboard=Keyboard(one_time=False, inline=True).schema(
+                                    [
+                                        [
+                                            {"label": "📒 Профиль", "type": "text", "payload": {"cmd": "cmd_profile"}, "color": "primary"},
+                                            {"label": "💲 Баланс", "type": "text", "payload": {"cmd": "cmd_balance"}, "color": "secondary"},
+                                            {"label": "👑 Рейтинг", "type": "text", "payload": {"cmd": "cmd_rating"}, "color": "secondary"}
+                                        ],
+                                        [
+                                            {"label": "🛍 Магазин", "type": "text", "payload": {"cmd": "cmd_shop"}, "color": "secondary"},
+                                            {"label": "💰 Банк", "type": "text", "payload": {"cmd": "cmd_bank"}, "color": "secondary"}
+                                        ],
+                                        [
+                                            {"label": "❓ Помощь", "type": "text", "payload": {"cmd": "cmd_help"}, "color": "secondary"},
+                                            {"label": "💡 Разное", "type": "text", "payload": {"cmd": "cmd_other"}, "color": "secondary"}
+                                        ],
+                                        [
+                                            {"label": "🎁 Получить бонус", "type": "text", "payload": {"cmd": "cmd_bonus"}, "color": "positive"}
+                                        ]
+                                    ]
+                                 ).get_json())
+        else:
+            await message.answer(f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), мои команды:"
+                                 f"\n🎉 Развлекательные:\n"
+                                 f"⠀⠀↪ Переверни [фраза]\n"
+                                 f"⠀⠀🔮 Шар [фраза]\n"
+                                 f"⠀⠀📊 Инфа [фраза]\n"
+                                 f"⠀⠀⚖ Выбери [фраза] или [фраза2]\n"
+                                 f"⠀⠀📊 Курс\n"
+                                 f"⠀⠀💖 Брак\n"
+                                 f"⠀⠀💔 Развод\n\n"
+                                 f"💼 Бизнес:\n"
+                                 f"⠀⠀📈 Бизнес\n"
+                                 f"⠀⠀💵 Бизнес снять [сумма]\n"
+                                 f"⠀⠀👷 Бизнес нанять [кол-во]\n"
+                                 f"⠀⠀✅ Бизнес улучшить\n\n"
+                                 f"🌽 Питомцы:\n"
+                                 f"⠀⠀🐒 Питомец\n"
+                                 f"⠀⠀🐪 Питомец поход\n"
+                                 f"⠀⠀🌟 Питомец улучшить\n\n"
+                                 f"🚀 Игры:\n"
+                                 f"⠀⠀🎲 Кубик\n"
+                                 f"⠀⠀🎰 Казино [ставка]\n"
+                                 f"⠀⠀📈 Трейд [вверх/вниз] [ставка]\n"
+                                 f"⠀⠀🥛 Стаканчик [1-3] [ставка]\n"
+                                 f"⠀⠀🦅 Монетка\n\n"
+                                 f"🔥 Полезное:\n"
+                                 f"⠀⠀📒 Профиль\n"
+                                 f"⠀⠀🛍 Магазин\n"
+                                 f"⠀⠀💲 Баланс\n"
+                                 f"⠀⠀💰 Банк\n"
+                                 f"⠀⠀📦 Кейсы\n"
+                                 f"⠀⠀🔋 Ферма\n"
+                                 f"⠀⠀💎 Бонус\n\n"
+                                 f"💡 Разное:\n"
+                                 f"⠀⠀⚔ Клан\n"
+                                 f"⠀⠀🍹 Зелья\n"
+                                 f"⠀⠀👑 Рейтинг - ваш рейтинг\n"
+                                 f"⠀⠀🏆 Топ\n"
+                                 f"⠀⠀📠 Реши [пример]\n"
+                                 f"⠀⠀✒ Ник [имя]\n"
+                                 f"⠀⠀💸 Продать [предмет]\n"
+                                 f"⠀⠀🤝 Передать [ID] [сумма]\n"
+                                 f"⠀⠀👥 Реф\n"
+                                 f"⠀⠀🏆 Реф топ\n"
+                                 f"⠀⠀🎁 Донат\n\n"
+                                 f"🆘 Репорт [фраза] - ошибки или пожелания", keyboard=MAIN_KEYBOARD)
 
 
 @bot.on.message(text=["Профиль", "профиль"])
@@ -428,27 +510,77 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
         shop_data_sorted = MainData.get_shop_data(1)
         temp_text = ''
         if category is None:
-            await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), разделы магазина:\n'
-                                 f'🚙 Транспорт:\n'
-                                 f'⠀🚗 Машины\n'
-                                 f'⠀🏍 Мотоциклы\n'
-                                 f'⠀🛥 Яхты\n'
-                                 f'⠀🛩 Самолеты\n'
-                                 f'⠀🚁 Вертолеты\n'
-                                 f'\n🏘 Недвижимость:\n'
-                                 f'⠀🏠 Дома\n'
-                                 f'⠀🌇 Квартиры\n'
-                                 f'\n📌 Остальное:\n'
-                                 f'⠀📱 Телефоны\n'
-                                 f'⠀🔋 Фермы\n'
-                                 f'⠀👑 Рейтинг [кол-во]⠀⠀{general.change_number(1000000)}$/ед.\n'
-                                 f'⠀💼 Бизнесы\n'
-                                 f'⠀🌐 Биткоин [кол-во]⠀⠀{general.change_number(MainData.get_settings()[0]["BTC_USD_Curse"])}$/ед.\n'
-                                 f'⠀🐸 Питомцы\n'
-                                 f'⠀📦 Кейсы'
-                                 f'\n🔎 Для просмотра категории используйте "магазин [категория]".\n'
-                                 f'🔎 Для покупки используйте "магазин [категория] купить [номер товара]".\n',
-                                 keyboard=SHOP_KEYBOARD)
+            chats = {ID["ChatID"] for ID in MainData.get_chats()}
+            if message.peer_id in chats:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), разделы магазина:\n'
+                                     f'🚙 Транспорт:\n'
+                                     f'⠀🚗 Машины\n'
+                                     f'⠀🏍 Мотоциклы\n'
+                                     f'⠀🛥 Яхты\n'
+                                     f'⠀🛩 Самолеты\n'
+                                     f'⠀🚁 Вертолеты\n'
+                                     f'\n🏘 Недвижимость:\n'
+                                     f'⠀🏠 Дома\n'
+                                     f'⠀🌇 Квартиры\n'
+                                     f'\n📌 Остальное:\n'
+                                     f'⠀📱 Телефоны\n'
+                                     f'⠀🔋 Фермы\n'
+                                     f'⠀👑 Рейтинг [кол-во]⠀⠀{general.change_number(1000000)}$/ед.\n'
+                                     f'⠀💼 Бизнесы\n'
+                                     f'⠀🌐 Биткоин [кол-во]⠀⠀{general.change_number(MainData.get_settings()[0]["BTC_USD_Curse"])}$/ед.\n'
+                                     f'⠀🐸 Питомцы\n'
+                                     f'⠀📦 Кейсы'
+                                     f'\n🔎 Для просмотра категории используйте "магазин [категория]".\n'
+                                     f'🔎 Для покупки используйте "магазин [категория] купить [номер товара]".\n',
+                                     keyboard=Keyboard(one_time=False, inline=True).schema(
+                                         [
+                                             [
+                                                 {"label": "🚗 Машины", "type": "text", "payload": {"cmd": "cmd_shop_transport_cars"}, "color": "secondary"},
+                                                 {"label": "🏍 Мотоциклы", "type": "text", "payload": {"cmd": "cmd_shop_transport_motorcycles"},
+                                                  "color": "secondary"}
+                                             ],
+                                             [
+                                                 {"label": "🏠 Дома", "type": "text", "payload": {"cmd": "cmd_shop_estate_houses"}, "color": "secondary"},
+                                                 {"label": "🌇 Квартиры", "type": "text", "payload": {"cmd": "cmd_shop_estate_apartments"},
+                                                  "color": "secondary"}
+                                             ],
+                                             [
+                                                 {"label": "📱 Телефоны", "type": "text", "payload": {"cmd": "cmd_shop_other_phones"}, "color": "secondary"},
+                                                 {"label": "🔋 Фермы", "type": "text", "payload": {"cmd": "cmd_shop_other_farms"}, "color": "secondary"},
+                                                 {"label": "💼 Бизнесы", "type": "text", "payload": {"cmd": "cmd_shop_other_businesses"},
+                                                  "color": "secondary"},
+                                                 {"label": "🐸 Питомцы", "type": "text", "payload": {"cmd": "cmd_shop_other_pets"}, "color": "secondary"}
+                                             ],
+                                             [
+                                                 {"label": "📦 Кейсы", "type": "text", "payload": {"cmd": "cmd_shop_other_cases"}, "color": "secondary"}
+                                             ],
+                                             [
+                                                 {"label": "◀ В главное меню", "type": "text", "payload": {"cmd": "cmd_mainmenu"}, "color": "positive"}
+                                             ]
+                                         ]
+                                     ).get_json())
+            else:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), разделы магазина:\n'
+                                     f'🚙 Транспорт:\n'
+                                     f'⠀🚗 Машины\n'
+                                     f'⠀🏍 Мотоциклы\n'
+                                     f'⠀🛥 Яхты\n'
+                                     f'⠀🛩 Самолеты\n'
+                                     f'⠀🚁 Вертолеты\n'
+                                     f'\n🏘 Недвижимость:\n'
+                                     f'⠀🏠 Дома\n'
+                                     f'⠀🌇 Квартиры\n'
+                                     f'\n📌 Остальное:\n'
+                                     f'⠀📱 Телефоны\n'
+                                     f'⠀🔋 Фермы\n'
+                                     f'⠀👑 Рейтинг [кол-во]⠀⠀{general.change_number(1000000)}$/ед.\n'
+                                     f'⠀💼 Бизнесы\n'
+                                     f'⠀🌐 Биткоин [кол-во]⠀⠀{general.change_number(MainData.get_settings()[0]["BTC_USD_Curse"])}$/ед.\n'
+                                     f'⠀🐸 Питомцы\n'
+                                     f'⠀📦 Кейсы'
+                                     f'\n🔎 Для просмотра категории используйте "магазин [категория]".\n'
+                                     f'🔎 Для покупки используйте "магазин [категория] купить [номер товара]".\n',
+                                     keyboard=SHOP_KEYBOARD)
         elif category.lower() == 'машины':
             if product is None:
                 for car in shop_data_sorted[0]:
@@ -811,7 +943,7 @@ async def shop_products_handler(message: Message, info: UsersUserXtrCounters):
                              f"Ваш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
     else:
         user = UserAction.get_user(message.from_id)
-        shop_data = MainData.get_shop_data()
+        # shop_data = MainData.get_shop_data()
         shop_data_sorted = MainData.get_shop_data(1)
         temp_text = ''
         products_category = message.payload.split('{"cmd":"cmd_shop_')[1].split('"}')[0]
@@ -1699,13 +1831,40 @@ async def games_handler(message: Message, info: UsersUserXtrCounters):
         await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
                              f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
     else:
-        await message.answer(f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), мои игры: \n"
-                             f"🔫 Рулетка - русская рулетка\n"
-                             f"🎲 Кубик [1-6]\n"
-                             f"🎰 Казино [сумма]\n"
-                             f"📈 Трейд [вверх/вниз] [сумма]\n"
-                             f"🥛 Стаканчик [1-3] [сумма]\n"
-                             f"🦅 Монетка [орёл/решка] [сумма]", keyboard=GAMES_KEYBOARD)
+        chats = {ID["ChatID"] for ID in MainData.get_chats()}
+        if message.peer_id in chats:
+            await message.answer(f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), мои игры: \n"
+                                 f"🔫 Рулетка - русская рулетка\n"
+                                 f"🎲 Кубик [1-6]\n"
+                                 f"🎰 Казино [сумма]\n"
+                                 f"📈 Трейд [вверх/вниз] [сумма]\n"
+                                 f"🥛 Стаканчик [1-3] [сумма]\n"
+                                 f"🦅 Монетка [орёл/решка] [сумма]",
+                                 keyboard=Keyboard(one_time=False, inline=True).schema(
+                                     [
+                                         [
+                                             {"label": "🔫 Рулетка", "type": "text", "payload": {"cmd": "game_roulette"}, "color": "secondary"},
+                                             {"label": "🎲 Кубик", "type": "text", "payload": {"cmd": "game_cube"}, "color": "secondary"},
+                                             {"label": "🎰 Казино", "type": "text", "payload": {"cmd": "game_casino"}, "color": "secondary"}
+                                         ],
+                                         [
+                                             {"label": "📈 Трейд", "type": "text", "payload": {"cmd": "game_trade"}, "color": "secondary"},
+                                             {"label": "🥛 Стаканчик", "type": "text", "payload": {"cmd": "game_cup"}, "color": "secondary"},
+                                             {"label": "🦅 Монетка", "type": "text", "payload": {"cmd": "game_coin"}, "color": "secondary"}
+                                         ],
+                                         [
+                                             {"label": "◀ В раздел \"разное\"", "type": "text", "payload": {"cmd": "cmd_other"}, "color": "positive"}
+                                         ]
+                                     ]
+                                 ).get_json())
+        else:
+            await message.answer(f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), мои игры: \n"
+                                 f"🔫 Рулетка - русская рулетка\n"
+                                 f"🎲 Кубик [1-6]\n"
+                                 f"🎰 Казино [сумма]\n"
+                                 f"📈 Трейд [вверх/вниз] [сумма]\n"
+                                 f"🥛 Стаканчик [1-3] [сумма]\n"
+                                 f"🦅 Монетка [орёл/решка] [сумма]", keyboard=GAMES_KEYBOARD)
 
 
 # Game roulette
@@ -1721,9 +1880,27 @@ async def game_roulette_handler(message: Message, info: UsersUserXtrCounters):
         user = UserAction.get_user(message.from_id)
         user[0]["Roulette_Shots"] = 1
         UserAction.save_user(message.from_id, user)
-        await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы начали игру в \"Русскую рулетку\" 👍\n"
-                             f"🔫 Для игры введите \"выстрелить\"\n"
-                             f"❌ Чтобы выйти из игры, напишет \"остановиться\"", keyboard=GAME_ROULETTE_KEYBOARD)
+        chats = {ID["ChatID"] for ID in MainData.get_chats()}
+        if message.peer_id in chats:
+            await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы начали игру в \"Русскую рулетку\" 👍\n"
+                                 f"🔫 Для игры введите \"выстрелить\"\n"
+                                 f"❌ Чтобы выйти из игры, напишет \"остановиться\"",
+                                 keyboard=Keyboard(one_time=False, inline=True).schema(
+                                     [
+                                         [
+                                             {"label": "🔫 Выстрелить", "type": "text", "payload": {"cmd": "game_roulette_shot"}, "color": "secondary"},
+                                             {"label": "💵 Остановиться", "type": "text", "payload": {"cmd": "game_roulette_stop"},
+                                              "color": "secondary"},
+                                         ],
+                                         [
+                                             {"label": "◀ Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "positive"}
+                                         ]
+                                     ]
+                                 ).get_json())
+        else:
+            await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы начали игру в \"Русскую рулетку\" 👍\n"
+                                 f"🔫 Для игры введите \"выстрелить\"\n"
+                                 f"❌ Чтобы выйти из игры, напишет \"остановиться\"", keyboard=GAME_ROULETTE_KEYBOARD)
 
 
 @bot.on.message(text=["Выстрелить", "выстрелить"])
@@ -1740,35 +1917,107 @@ async def game_roulette_shot_handler(message: Message, info: UsersUserXtrCounter
         if user[0]["Roulette_Shots"] <= 0:
             user[0]["Roulette_Shots"] = 1
             UserAction.save_user(message.from_id, user)
-            await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы начали игру в \"Русскую рулетку\" 👍\n'
-                                 f'🔫 Для игры введите \"выстрелить\"\n'
-                                 f'❌ Чтобы выйти из игры, напишет \"остановиться\"', keyboard=GAME_ROULETTE_KEYBOARD)
+            chats = {ID["ChatID"] for ID in MainData.get_chats()}
+            if message.peer_id in chats:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы начали игру в \"Русскую рулетку\" 👍\n'
+                                     f'🔫 Для игры введите \"выстрелить\"\n'
+                                     f'❌ Чтобы выйти из игры, напишет \"остановиться\"',
+                                     keyboard=Keyboard(one_time=False, inline=True).schema(
+                                         [
+                                             [
+                                                 {"label": "🔫 Выстрелить", "type": "text", "payload": {"cmd": "game_roulette_shot"}, "color": "secondary"},
+                                                 {"label": "💵 Остановиться", "type": "text", "payload": {"cmd": "game_roulette_stop"},
+                                                  "color": "secondary"},
+                                             ],
+                                             [
+                                                 {"label": "◀ Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "positive"}
+                                             ]
+                                         ]
+                                     ).get_json())
+            else:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы начали игру в \"Русскую рулетку\" 👍\n'
+                                     f'🔫 Для игры введите \"выстрелить\"\n'
+                                     f'❌ Чтобы выйти из игры, напишет \"остановиться\"', keyboard=GAME_ROULETTE_KEYBOARD)
         else:
             if shot == 1 and user[0]["Roulette_Shots"] > 0:
                 if user[0]["Money"] >= 800:
                     heal_money = random.randint(1, 8) * 100
-                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы выстрелили на '
-                                         f'{user[0]["Roulette_Shots"]}-й попытке ☹\n'
-                                         f'💸 Ваш выигрыш: {general.change_number(user[0]["Roulette_Shots"] * 100)}$\n'
-                                         f'❤ На лечение потрачено: {general.change_number(heal_money)}$',
-                                         keyboard=GAME_ROULETTE_KEYBOARD)
+                    chats = {ID["ChatID"] for ID in MainData.get_chats()}
+                    if message.peer_id in chats:
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы выстрелили на '
+                                             f'{user[0]["Roulette_Shots"]}-й попытке ☹\n'
+                                             f'💸 Ваш выигрыш: {general.change_number(user[0]["Roulette_Shots"] * 100)}$\n'
+                                             f'❤ На лечение потрачено: {general.change_number(heal_money)}$',
+                                             keyboard=Keyboard(one_time=False, inline=True).schema(
+                                                 [
+                                                     [
+                                                         {"label": "🔫 Выстрелить", "type": "text", "payload": {"cmd": "game_roulette_shot"}, "color": "secondary"},
+                                                         {"label": "💵 Остановиться", "type": "text", "payload": {"cmd": "game_roulette_stop"},
+                                                          "color": "secondary"},
+                                                     ],
+                                                     [
+                                                         {"label": "◀ Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "positive"}
+                                                     ]
+                                                 ]
+                                             ).get_json())
+                    else:
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы выстрелили на '
+                                             f'{user[0]["Roulette_Shots"]}-й попытке ☹\n'
+                                             f'💸 Ваш выигрыш: {general.change_number(user[0]["Roulette_Shots"] * 100)}$\n'
+                                             f'❤ На лечение потрачено: {general.change_number(heal_money)}$',
+                                             keyboard=GAME_ROULETTE_KEYBOARD)
                     user[0]["Money"] -= heal_money
                     user[0]["Money"] += user[0]["Roulette_Shots"] * 100
                     user[0]["Roulette_Shots"] = 0
                     UserAction.save_user(message.from_id, user)
                 else:
-                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы выстрелили на '
-                                         f'{user[0]["Roulette_Shots"]}-й попытке ☹\n'
-                                         f'💸 Ваш выигрыш: {general.change_number(user[0]["Roulette_Shots"] * 100)}$',
-                                         keyboard=GAME_ROULETTE_KEYBOARD)
+                    chats = {ID["ChatID"] for ID in MainData.get_chats()}
+                    if message.peer_id in chats:
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы выстрелили на '
+                                             f'{user[0]["Roulette_Shots"]}-й попытке ☹\n'
+                                             f'💸 Ваш выигрыш: {general.change_number(user[0]["Roulette_Shots"] * 100)}$',
+                                             keyboard=Keyboard(one_time=False, inline=True).schema(
+                                                 [
+                                                     [
+                                                         {"label": "🔫 Выстрелить", "type": "text", "payload": {"cmd": "game_roulette_shot"}, "color": "secondary"},
+                                                         {"label": "💵 Остановиться", "type": "text", "payload": {"cmd": "game_roulette_stop"},
+                                                          "color": "secondary"},
+                                                     ],
+                                                     [
+                                                         {"label": "◀ Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "positive"}
+                                                     ]
+                                                 ]
+                                             ).get_json())
+                    else:
+                        await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы выстрелили на '
+                                             f'{user[0]["Roulette_Shots"]}-й попытке ☹\n'
+                                             f'💸 Ваш выигрыш: {general.change_number(user[0]["Roulette_Shots"] * 100)}$',
+                                             keyboard=GAME_ROULETTE_KEYBOARD)
                     user[0]["Money"] += user[0]["Roulette_Shots"] * 100
                     user[0]["Roulette_Shots"] = 0
                     UserAction.save_user(message.from_id, user)
             else:
                 user[0]["Roulette_Shots"] += 1
                 UserAction.save_user(message.from_id, user)
-                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы сделали '
-                                     f'{user[0]["Roulette_Shots"] - 1}-ю осечку', keyboard=GAME_ROULETTE_KEYBOARD)
+                chats = {ID["ChatID"] for ID in MainData.get_chats()}
+                if message.peer_id in chats:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы сделали '
+                                         f'{user[0]["Roulette_Shots"] - 1}-ю осечку',
+                                         keyboard=Keyboard(one_time=False, inline=True).schema(
+                                             [
+                                                 [
+                                                     {"label": "🔫 Выстрелить", "type": "text", "payload": {"cmd": "game_roulette_shot"}, "color": "secondary"},
+                                                     {"label": "💵 Остановиться", "type": "text", "payload": {"cmd": "game_roulette_stop"},
+                                                      "color": "secondary"},
+                                                 ],
+                                                 [
+                                                     {"label": "◀ Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "positive"}
+                                                 ]
+                                             ]
+                                         ).get_json())
+                else:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы сделали '
+                                         f'{user[0]["Roulette_Shots"] - 1}-ю осечку', keyboard=GAME_ROULETTE_KEYBOARD)
 
 
 @bot.on.message(text=["Остановиться", "остановиться"])
@@ -1782,14 +2031,59 @@ async def game_roulette_shot_handler(message: Message, info: UsersUserXtrCounter
     else:
         user = UserAction.get_user(message.from_id)
         if user[0]["Roulette_Shots"] - 1 <= 0:
-            await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы не играли в \"Русскую рулетку\"\n'
-                                 f'🔫 Для начала игры введите \"рулетка\"\n', keyboard=GAMES_KEYBOARD)
+            chats = {ID["ChatID"] for ID in MainData.get_chats()}
+            if message.peer_id in chats:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы не играли в \"Русскую рулетку\"\n'
+                                     f'🔫 Для начала игры введите \"рулетка\"\n',
+                                     keyboard=Keyboard(one_time=False, inline=True).schema(
+                                         [
+                                             [
+                                                 {"label": "🔫 Рулетка", "type": "text", "payload": {"cmd": "game_roulette"}, "color": "secondary"},
+                                                 {"label": "🎲 Кубик", "type": "text", "payload": {"cmd": "game_cube"}, "color": "secondary"},
+                                                 {"label": "🎰 Казино", "type": "text", "payload": {"cmd": "game_casino"}, "color": "secondary"}
+                                             ],
+                                             [
+                                                 {"label": "📈 Трейд", "type": "text", "payload": {"cmd": "game_trade"}, "color": "secondary"},
+                                                 {"label": "🥛 Стаканчик", "type": "text", "payload": {"cmd": "game_cup"}, "color": "secondary"},
+                                                 {"label": "🦅 Монетка", "type": "text", "payload": {"cmd": "game_coin"}, "color": "secondary"}
+                                             ],
+                                             [
+                                                 {"label": "◀ В раздел \"разное\"", "type": "text", "payload": {"cmd": "cmd_other"}, "color": "positive"}
+                                             ]
+                                         ]
+                                     ).get_json())
+            else:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы не играли в \"Русскую рулетку\"\n'
+                                     f'🔫 Для начала игры введите \"рулетка\"\n', keyboard=GAMES_KEYBOARD)
         else:
             if user[0]["Roulette_Shots"] - 1 > 0:
-                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы остановилсь на '
-                                     f'{user[0]["Roulette_Shots"]}-й попытке 👍\n'
-                                     f'💸 Ваш выигрыш: {general.change_number(user[0]["Roulette_Shots"] * 100)}$',
-                                     keyboard=GAMES_KEYBOARD)
+                chats = {ID["ChatID"] for ID in MainData.get_chats()}
+                if message.peer_id in chats:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы остановилсь на '
+                                         f'{user[0]["Roulette_Shots"]}-й попытке 👍\n'
+                                         f'💸 Ваш выигрыш: {general.change_number(user[0]["Roulette_Shots"] * 100)}$',
+                                         keyboard=Keyboard(one_time=False, inline=True).schema(
+                                             [
+                                                 [
+                                                     {"label": "🔫 Рулетка", "type": "text", "payload": {"cmd": "game_roulette"}, "color": "secondary"},
+                                                     {"label": "🎲 Кубик", "type": "text", "payload": {"cmd": "game_cube"}, "color": "secondary"},
+                                                     {"label": "🎰 Казино", "type": "text", "payload": {"cmd": "game_casino"}, "color": "secondary"}
+                                                 ],
+                                                 [
+                                                     {"label": "📈 Трейд", "type": "text", "payload": {"cmd": "game_trade"}, "color": "secondary"},
+                                                     {"label": "🥛 Стаканчик", "type": "text", "payload": {"cmd": "game_cup"}, "color": "secondary"},
+                                                     {"label": "🦅 Монетка", "type": "text", "payload": {"cmd": "game_coin"}, "color": "secondary"}
+                                                 ],
+                                                 [
+                                                     {"label": "◀ В раздел \"разное\"", "type": "text", "payload": {"cmd": "cmd_other"}, "color": "positive"}
+                                                 ]
+                                             ]
+                                         ).get_json())
+                else:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы остановилсь на '
+                                         f'{user[0]["Roulette_Shots"]}-й попытке 👍\n'
+                                         f'💸 Ваш выигрыш: {general.change_number(user[0]["Roulette_Shots"] * 100)}$',
+                                         keyboard=GAMES_KEYBOARD)
                 user[0]["Money"] += user[0]["Roulette_Shots"] * 100
                 user[0]["Roulette_Shots"] = 0
                 UserAction.save_user(message.from_id, user)
@@ -1805,9 +2099,32 @@ async def game_cube_handler(message: Message, info: UsersUserXtrCounters):
         await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
                              f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
     else:
-        await message.answer(
-            f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), Вы начали игру в \"Кубик\" 👍\n"
-            f"🎲 Для игры в кубик выбирайте числа от 1 до 6\n", keyboard=GAME_CUBE_KEYBOARD)
+        chats = {ID["ChatID"] for ID in MainData.get_chats()}
+        if message.peer_id in chats:
+            await message.answer(
+                f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), Вы начали игру в \"Кубик\" 👍\n"
+                f"🎲 Для игры в кубик выбирайте числа от 1 до 6\n",
+                keyboard=Keyboard(one_time=False, inline=True).schema(
+                    [
+                        [
+                            {"label": "🎲 1", "type": "text", "payload": {"cmd": "game_cube_1"}, "color": "secondary"},
+                            {"label": "🎲 2", "type": "text", "payload": {"cmd": "game_cube_2"}, "color": "secondary"},
+                            {"label": "🎲 3", "type": "text", "payload": {"cmd": "game_cube_3"}, "color": "secondary"}
+                        ],
+                        [
+                            {"label": "🎲 4", "type": "text", "payload": {"cmd": "game_cube_4"}, "color": "secondary"},
+                            {"label": "🎲 5", "type": "text", "payload": {"cmd": "game_cube_5"}, "color": "secondary"},
+                            {"label": "🎲 6", "type": "text", "payload": {"cmd": "game_cube_6"}, "color": "secondary"}
+                        ],
+                        [
+                            {"label": "◀ Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "positive"}
+                        ]
+                    ]
+                ).get_json())
+        else:
+            await message.answer(
+                f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), Вы начали игру в \"Кубик\" 👍\n"
+                f"🎲 Для игры в кубик выбирайте числа от 1 до 6\n", keyboard=GAME_CUBE_KEYBOARD)
 
 
 @bot.on.message(payload={"cmd": "game_cube_1"})
@@ -1828,14 +2145,59 @@ async def game_cube_number_handler(message: Message, info: UsersUserXtrCounters)
         cube_temp = random.randint(1, 6)
         cube_prize = random.randint(2, 50) * 50
         if cube_temp == int(temp_number):
-            await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы угадали 🎉\n'
-                                 f'🎲 Выпало число: {cube_temp}\n'
-                                 f'💸 Ваш выигрыш: {general.change_number(cube_prize)}$', keyboard=GAME_CUBE_KEYBOARD)
+            chats = {ID["ChatID"] for ID in MainData.get_chats()}
+            if message.peer_id in chats:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы угадали 🎉\n'
+                                     f'🎲 Выпало число: {cube_temp}\n'
+                                     f'💸 Ваш выигрыш: {general.change_number(cube_prize)}$',
+                                     keyboard=Keyboard(one_time=False, inline=True).schema(
+                                         [
+                                             [
+                                                 {"label": "🎲 1", "type": "text", "payload": {"cmd": "game_cube_1"}, "color": "secondary"},
+                                                 {"label": "🎲 2", "type": "text", "payload": {"cmd": "game_cube_2"}, "color": "secondary"},
+                                                 {"label": "🎲 3", "type": "text", "payload": {"cmd": "game_cube_3"}, "color": "secondary"}
+                                             ],
+                                             [
+                                                 {"label": "🎲 4", "type": "text", "payload": {"cmd": "game_cube_4"}, "color": "secondary"},
+                                                 {"label": "🎲 5", "type": "text", "payload": {"cmd": "game_cube_5"}, "color": "secondary"},
+                                                 {"label": "🎲 6", "type": "text", "payload": {"cmd": "game_cube_6"}, "color": "secondary"}
+                                             ],
+                                             [
+                                                 {"label": "◀ Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "positive"}
+                                             ]
+                                         ]
+                                     ).get_json())
+            else:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы угадали 🎉\n'
+                                     f'🎲 Выпало число: {cube_temp}\n'
+                                     f'💸 Ваш выигрыш: {general.change_number(cube_prize)}$', keyboard=GAME_CUBE_KEYBOARD)
             user[0]["Money"] += cube_prize
             UserAction.save_user(message.from_id, user)
         else:
-            await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы не угадали 😟\n'
-                                 f'🎲 Выпало число: {cube_temp}', keyboard=GAME_CUBE_KEYBOARD)
+            chats = {ID["ChatID"] for ID in MainData.get_chats()}
+            if message.peer_id in chats:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы не угадали 😟\n'
+                                     f'🎲 Выпало число: {cube_temp}',
+                                     keyboard=Keyboard(one_time=False, inline=True).schema(
+                                         [
+                                             [
+                                                 {"label": "🎲 1", "type": "text", "payload": {"cmd": "game_cube_1"}, "color": "secondary"},
+                                                 {"label": "🎲 2", "type": "text", "payload": {"cmd": "game_cube_2"}, "color": "secondary"},
+                                                 {"label": "🎲 3", "type": "text", "payload": {"cmd": "game_cube_3"}, "color": "secondary"}
+                                             ],
+                                             [
+                                                 {"label": "🎲 4", "type": "text", "payload": {"cmd": "game_cube_4"}, "color": "secondary"},
+                                                 {"label": "🎲 5", "type": "text", "payload": {"cmd": "game_cube_5"}, "color": "secondary"},
+                                                 {"label": "🎲 6", "type": "text", "payload": {"cmd": "game_cube_6"}, "color": "secondary"}
+                                             ],
+                                             [
+                                                 {"label": "◀ Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "positive"}
+                                             ]
+                                         ]
+                                     ).get_json())
+            else:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы не угадали 😟\n'
+                                     f'🎲 Выпало число: {cube_temp}', keyboard=GAME_CUBE_KEYBOARD)
 
 
 # Game coin
@@ -1848,9 +2210,26 @@ async def game_cube_handler(message: Message, info: UsersUserXtrCounters):
         await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
                              f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
     else:
-        await message.answer(
-            f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), Вы начали игру в \"Монетка\" 👍\n"
-            f"🦅 Для игры в кубик выбирайте \"Орел\" или \"Решка\"\n", keyboard=GAME_COIN_KEYBOARD)
+        chats = {ID["ChatID"] for ID in MainData.get_chats()}
+        if message.peer_id in chats:
+            await message.answer(
+                f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), Вы начали игру в \"Монетка\" 👍\n"
+                f"🦅 Для игры в кубик выбирайте \"Орел\" или \"Решка\"\n",
+                keyboard=Keyboard(one_time=False, inline=True).schema(
+                    [
+                        [
+                            {"label": "🦅 Орел", "type": "text", "payload": {"cmd": "game_coin_1"}, "color": "secondary"},
+                            {"label": "🗂 Решка", "type": "text", "payload": {"cmd": "game_coin_2"}, "color": "secondary"},
+                        ],
+                        [
+                            {"label": "◀ Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "positive"}
+                        ]
+                    ]
+                ).get_json())
+        else:
+            await message.answer(
+                f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), Вы начали игру в \"Монетка\" 👍\n"
+                f"🦅 Для игры в кубик выбирайте \"Орел\" или \"Решка\"\n", keyboard=GAME_COIN_KEYBOARD)
 
 
 @bot.on.message(payload={"cmd": "game_coin_1"})
@@ -1867,14 +2246,47 @@ async def game_cube_number_handler(message: Message, info: UsersUserXtrCounters)
         coin_temp = random.randint(1, 2)
         coin_prize = random.randint(2, 25) * 50
         if coin_temp == int(temp_number):
-            await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы угадали 🎉\n'
-                                 f'🦅 Выпало: {"орел" if coin_temp == 1 else "решка"}\n'
-                                 f'💸 Ваш выигрыш: {general.change_number(coin_prize)}$', keyboard=GAME_COIN_KEYBOARD)
+            chats = {ID["ChatID"] for ID in MainData.get_chats()}
+            if message.peer_id in chats:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы угадали 🎉\n'
+                                     f'🦅 Выпало: {"орел" if coin_temp == 1 else "решка"}\n'
+                                     f'💸 Ваш выигрыш: {general.change_number(coin_prize)}$',
+                                     keyboard=Keyboard(one_time=False, inline=True).schema(
+                                         [
+                                             [
+                                                 {"label": "🦅 Орел", "type": "text", "payload": {"cmd": "game_coin_1"}, "color": "secondary"},
+                                                 {"label": "🗂 Решка", "type": "text", "payload": {"cmd": "game_coin_2"}, "color": "secondary"},
+                                             ],
+                                             [
+                                                 {"label": "◀ Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "positive"}
+                                             ]
+                                         ]
+                                     ).get_json())
+            else:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы угадали 🎉\n'
+                                     f'🦅 Выпало: {"орел" if coin_temp == 1 else "решка"}\n'
+                                     f'💸 Ваш выигрыш: {general.change_number(coin_prize)}$', keyboard=GAME_COIN_KEYBOARD)
             user[0]["Money"] += coin_prize
             UserAction.save_user(message.from_id, user)
         else:
-            await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы не угадали 😟\n'
-                                 f'🦅 Выпало: {"орел" if coin_temp == 1 else "решка"}', keyboard=GAME_COIN_KEYBOARD)
+            chats = {ID["ChatID"] for ID in MainData.get_chats()}
+            if message.peer_id in chats:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы не угадали 😟\n'
+                                     f'🦅 Выпало: {"орел" if coin_temp == 1 else "решка"}',
+                                     keyboard=Keyboard(one_time=False, inline=True).schema(
+                                         [
+                                             [
+                                                 {"label": "🦅 Орел", "type": "text", "payload": {"cmd": "game_coin_1"}, "color": "secondary"},
+                                                 {"label": "🗂 Решка", "type": "text", "payload": {"cmd": "game_coin_2"}, "color": "secondary"},
+                                             ],
+                                             [
+                                                 {"label": "◀ Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "positive"}
+                                             ]
+                                         ]
+                                     ).get_json())
+            else:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы не угадали 😟\n'
+                                     f'🦅 Выпало: {"орел" if coin_temp == 1 else "решка"}', keyboard=GAME_COIN_KEYBOARD)
 
 
 # Game cup
@@ -2012,9 +2424,31 @@ async def other_handler(message: Message, info: UsersUserXtrCounters):
         await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
                              f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
     else:
-        await message.answer(
-            f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), раздел \"Разное\" 💡",
-            keyboard=OTHER_KEYBOARD)
+        chats = {ID["ChatID"] for ID in MainData.get_chats()}
+        if message.peer_id in chats:
+            await message.answer(
+                f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), раздел \"Разное\" 💡",
+                keyboard=Keyboard(one_time=False, inline=True).schema(
+                    [
+                        [
+                            {"label": "🚀 Игры", "type": "text", "payload": {"cmd": "cmd_games"}, "color": "secondary"},
+                            {"label": "🖨 Реши", "type": "text", "payload": {"cmd": "cmd_equation"}, "color": "secondary"},
+                            {"label": "📊 Курс", "type": "text", "payload": {"cmd": "cmd_course"}, "color": "secondary"}
+                        ],
+                        [
+                            {"label": "🏆 Топ", "type": "text", "payload": {"cmd": "cmd_top"}, "color": "secondary"},
+                            {"label": "🤝 Передать", "type": "text", "payload": {"cmd": "cmd_transfer"}, "color": "secondary"}
+                        ],
+                        [
+                            {"label": "⚙ Настройки", "type": "text", "payload": {"cmd": "cmd_settings"}, "color": "primary"},
+                            {"label": "◀ В главное меню", "type": "text", "payload": {"cmd": "cmd_mainmenu"}, "color": "positive"}
+                        ]
+                    ]
+                ).get_json())
+        else:
+            await message.answer(
+                f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), раздел \"Разное\" 💡",
+                keyboard=OTHER_KEYBOARD)
 
 
 @bot.on.message(payload={"cmd": "cmd_mainmenu"})
@@ -2025,9 +2459,34 @@ async def other_handler(message: Message, info: UsersUserXtrCounters):
         await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
                              f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
     else:
-        await message.answer(
-            f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), раздел \"Главное меню\" 💡",
-            keyboard=MAIN_KEYBOARD)
+        chats = {ID["ChatID"] for ID in MainData.get_chats()}
+        if message.peer_id in chats:
+            await message.answer(
+                f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), раздел \"Главное меню\" 💡",
+                keyboard=Keyboard(one_time=False, inline=True).schema(
+                    [
+                        [
+                            {"label": "📒 Профиль", "type": "text", "payload": {"cmd": "cmd_profile"}, "color": "primary"},
+                            {"label": "💲 Баланс", "type": "text", "payload": {"cmd": "cmd_balance"}, "color": "secondary"},
+                            {"label": "👑 Рейтинг", "type": "text", "payload": {"cmd": "cmd_rating"}, "color": "secondary"}
+                        ],
+                        [
+                            {"label": "🛍 Магазин", "type": "text", "payload": {"cmd": "cmd_shop"}, "color": "secondary"},
+                            {"label": "💰 Банк", "type": "text", "payload": {"cmd": "cmd_bank"}, "color": "secondary"}
+                        ],
+                        [
+                            {"label": "❓ Помощь", "type": "text", "payload": {"cmd": "cmd_help"}, "color": "secondary"},
+                            {"label": "💡 Разное", "type": "text", "payload": {"cmd": "cmd_other"}, "color": "secondary"}
+                        ],
+                        [
+                            {"label": "🎁 Получить бонус", "type": "text", "payload": {"cmd": "cmd_bonus"}, "color": "positive"}
+                        ]
+                    ]
+                ).get_json())
+        else:
+            await message.answer(
+                f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), раздел \"Главное меню\" 💡",
+                keyboard=MAIN_KEYBOARD)
 
 
 # Farms commands
@@ -2563,7 +3022,33 @@ async def group_join_handler(event: GroupTypes.GroupJoin):
 #     MainData.add_chat(ChatID=event.object.message.chat_id)
 #     await bot.api.messages.send(peer_id=event.object.message.peer_id, message=event.object.message.title, random_id=0)
 
+async def widget_update_handler():
+    while True:
+        time.sleep(30)
+        users = UserAction.get_users()
+        widget_top = {"title": "🔝 Лучшие игоки 🔝",
+                      "head":
+                          [
+                              {"text": "Ник игрока 📛", "align": "left"},
+                              {"text": "Деньги 💵", "align": "center"},
+                              {"text": "Рейтинг 🏆", "align": "right"}
+                          ],
+                      "body": []
+                      }
+        for user in users:
+            widget_top["body"].append([
+                {"icon_id": f"id{user['VK_ID']}", "text": f"{user['Name']}", "url": f"vk.com/id{user['VK_ID']}"},
+                {"text": f"{general.change_number(user['Money'])}$"},
+                {'text': f'{general.change_number(user["Rating"])}'}])
+        await widget.api.app_widgets.update(code=f'return {widget_top};', type="table")
 
+
+def start_update_widget():
+    loop = asyncio.new_event_loop()
+    loop.run_until_complete(widget_update_handler())
+
+
+Thread(target=start_update_widget).start()
 bot.labeler.message_view.register_middleware(NoBotMiddleware())
 bot.labeler.message_view.register_middleware(RegistrationMiddleware())
 bot.labeler.message_view.register_middleware(InfoMiddleware())

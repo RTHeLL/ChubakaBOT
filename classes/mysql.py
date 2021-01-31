@@ -114,6 +114,17 @@ class UserAction(MySQL):
             else:
                 return result
 
+    def get_users(self):
+        with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            sql = "SELECT * FROM %s WHERE Rating>0 ORDER BY Rating DESC LIMIT 10"
+            cursor.execute(sql % config["USERS_TABLES"]["USERS"])
+            result = cursor.fetchall()
+            cursor.close()
+            if len(result) == 0:
+                return False
+            else:
+                return result
+
 
 class MainData(MySQL):
     # Function getting cars
@@ -242,3 +253,14 @@ class MainData(MySQL):
             cursor.execute(sql % (config["MAIN_TABLES"]["CHATS"], args_list[0], kwargs[args_list[0]]))
             logging.debug(f'New chat: {kwargs[args_list[0]]}')
             cursor.close()
+
+    def get_chats(self):
+        with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            sql = "SELECT * FROM %s"
+            cursor.execute(sql % config["MAIN_TABLES"]["CHATS"])
+            result = cursor.fetchall()
+            cursor.close()
+            if len(result) == 0:
+                return False
+            else:
+                return result

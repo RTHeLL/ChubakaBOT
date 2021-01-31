@@ -25,16 +25,17 @@ class Timers:
                 if user["FarmsType"] == 0:
                     continue
                 elif user["FarmsType"] == 1:
-                    cursor.execute(sql % (2*user["Farms"], user["VK_ID"]))
+                    cursor.execute(sql % (2 * user["Farms"], user["VK_ID"]))
                 elif user["FarmsType"] == 2:
-                    cursor.execute(sql % (10*user["Farms"], user["VK_ID"]))
+                    cursor.execute(sql % (10 * user["Farms"], user["VK_ID"]))
                 elif user["FarmsType"] == 3:
-                    cursor.execute(sql % (100*user["Farms"], user["VK_ID"]))
+                    cursor.execute(sql % (100 * user["Farms"], user["VK_ID"]))
 
             # Curse btc/usd
             bit = requests.get('https://api.cryptonator.com/api/ticker/btc-usd',
-                               headers={'User-Agent': 'Mozilla/5.0 (Platform; Security; OS-or-CPU; Localization; rv:1.4) '
-                                                      'Gecko/20030624 Netscape/7.1 (ax)'}).json()
+                               headers={
+                                   'User-Agent': 'Mozilla/5.0 (Platform; Security; OS-or-CPU; Localization; rv:1.4) '
+                                                 'Gecko/20030624 Netscape/7.1 (ax)'}).json()
             sql = f"UPDATE settings SET BTC_USD_Curse=%s"
             cursor.execute(sql % math.trunc(float(bit["ticker"]["price"])))
 
@@ -49,15 +50,22 @@ class Timers:
                 if user["BusinessLevel"] == 0:
                     continue
                 elif user["BusinessLevel"] == 1:
-                    if user["Workers_In_Business"] != MainData.get_data('businesses')[user["Business"]-1]["BusinessWorkers"]:
-                        cursor.execute(sql % (math.trunc(MainData.get_data('businesses')[user["Business"]-1]["MoneyPerHouse"]/2), user["VK_ID"]))
+                    if user["Workers_In_Business"] != MainData.get_data('businesses')[user["Business"] - 1][
+                        "BusinessWorkers"]:
+                        cursor.execute(sql % (
+                        math.trunc(MainData.get_data('businesses')[user["Business"] - 1]["MoneyPerHouse"] / 2),
+                        user["VK_ID"]))
                     else:
-                        cursor.execute(sql % (MainData.get_data('businesses')[user["Business"]-1]["MoneyPerHouse"], user["VK_ID"]))
+                        cursor.execute(sql % (
+                        MainData.get_data('businesses')[user["Business"] - 1]["MoneyPerHouse"], user["VK_ID"]))
                 elif user["BusinessLevel"] == 2:
-                    if user["Workers_In_Business"] != MainData.get_data('businesses')[user["Business"]-1]["BusinessWorkers"]*2:
-                        cursor.execute(sql % (MainData.get_data('businesses')[user["Business"]-1]["MoneyPerHouse"], user["VK_ID"]))
+                    if user["Workers_In_Business"] != MainData.get_data('businesses')[user["Business"] - 1][
+                        "BusinessWorkers"] * 2:
+                        cursor.execute(sql % (
+                        MainData.get_data('businesses')[user["Business"] - 1]["MoneyPerHouse"], user["VK_ID"]))
                     else:
-                        cursor.execute(sql % (MainData.get_data('businesses')[user["Business"]-1]["MoneyPerHouse"]*2, user["VK_ID"]))
+                        cursor.execute(sql % (
+                        MainData.get_data('businesses')[user["Business"] - 1]["MoneyPerHouse"] * 2, user["VK_ID"]))
 
             # Energy
             sql = f"UPDATE users SET Energy=Energy+1 WHERE Energy<30"
@@ -76,5 +84,3 @@ class Timers:
             # Bonus
             sql = f"UPDATE users SET Bonus=Bonus-1 WHERE Bonus>0"
             cursor.execute(sql)
-
-            cursor.close()
