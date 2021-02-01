@@ -225,13 +225,14 @@ timer.RepeatedTimer(60, data.timers.Timers.minute_timer).start()
 
 @bot.on.chat_message(rules.ChatActionRule("chat_invite_user"))
 async def test_invite_handler(message: Message, info: UsersUserXtrCounters):
-    MainData.add_chat(ChatID=message.peer_id)
-    await message.answer(f'Всем привет, я Чубака!\n'
-                         f'Напишите "помощь", чтобы узнать мои команды', keyboard=EMPTY_KEYBOARD)
-
-# @bot.on.message(rules.ChatActionRule("chat_kick_user"))
-# async def test_kick_handler(message: Message, info: UsersUserXtrCounters):
-#     print(1)
+    chats = {ID["ChatID"] for ID in MainData.get_chats()}
+    if message.chat_id not in chats:
+        MainData.add_chat(ChatID=message.chat_id)
+        await message.answer(f'Всем привет, я Чубака!\n'
+                             f'Напишите "помощь", чтобы узнать мои команды', keyboard=EMPTY_KEYBOARD)
+    else:
+        await message.answer(f'Всем привет, я Чубака!\n'
+                             f'Напишите "помощь", чтобы узнать мои команды', keyboard=EMPTY_KEYBOARD)
 
 
 # User commandsMessageEvent
@@ -2414,6 +2415,64 @@ async def game_casino_handler(message: Message, info: UsersUserXtrCounters, mone
                                      f"Используйте: казино [ставка]")
 
 
+# todo Изменить, когда будет сайт!
+# Donate command
+@bot.on.message(text=["Донат", "донат"])
+@bot.on.message(payload={"cmd": "cmd_donate"})
+async def donate_handler(message: Message, info: UsersUserXtrCounters):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        businesses = MainData.get_data('businesses')
+        pets = MainData.get_data('pets')
+        await message.answer(f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), "
+                             f"В ДАННЫЙ МОМЕНТ, ДЛЯ ПОКУПКИ ДОНАТ УСГУЛ, ОБРАЩАТЬСЯ К @id503006053 (ОСНОВАТЕЛЬ) ИЛИ @manderr (ЗАМЕСТИТЕЛЬ)!\n"
+                             f"ЗА ПЕРЕВОД СРЕДСТВ И НЕ ПОЛУЧЕНИЕ СВОЕГО ТОВАРА ОТВЕТСТВЕННОСТЬ ЛОЖИТЬСЯ ТОЛЬКО НА ВАС!!!\n\n"
+                             f"Доступный донат:\n"
+                             f"1.🎥 Бизнес «Киностудия», один из самых лучших бизнесов, с прибылью в {general.change_number(businesses[20 - 1]['MoneyPerHouse']*2)}$\n"
+                             f"🔹Продать бизнес можно за {general.change_number(math.trunc(businesses[20 - 1]['Price']/2))}$\n"
+                             f"🔸Цена: 47₽\n\n"
+                             f"2.💼 Бизнес «Межпланетный Экспресс», самый лучший бизнес, с прибылью в {general.change_number(businesses[21 - 1]['MoneyPerHouse']*2)}$\n"
+                             f"🔹Продать бизнес можно за {general.change_number(math.trunc(businesses[21 - 1]['Price']/2))}$\n"
+                             f"🔸Цена: 144₽\n\n"
+                             f"3.🦠 Питомец «Короновирус», самый лучший питомец\n"
+                             f"🔹При максимальном уровне приносит до {general.change_number(pets[14 - 1]['PetMaxMoney'])}$\n"
+                             f"🔹Короновирус невозможно потерять в походе\n"
+                             f"🔹Короновирус устаёт всего на 15 минут вместо 60-ти\n"
+                             f"🔸Продать Короновирус можно за {general.change_number(math.trunc(pets[14 - 1]['Price']/2))}$\n"
+                             f"🔸Цена: 47₽\n\n"
+                             f"4.🔮 Статус «Premium», самый лучший донат статус\n"
+                             f"🔹Подробное описание здесь: COMING SOON\n"
+                             f"🔸Цена: 225₽\n"
+                             f"5.🔥 Статус «VIP», самый дешёвый донат статус\n"
+                             f"🔹Подробное описание здесь: COMING SOON\n"
+                             f"🔸Цена: 47₽\n\n"
+                             f"Приобрести донат в автоматическом режиме можно на нашем сайте: {MainData.get_settings()[0]['SiteURL']} ✅\n"
+                             f"🎲 При покупке укажите ваш игровой ID: 434219")
+
+
+# Top command
+@bot.on.message(text=["Топ", "топ"])
+@bot.on.message(payload={"cmd": "cmd_top"})
+async def top_handler(message: Message, info: UsersUserXtrCounters):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        users = UserAction.get_users_top()
+        top_numbers = ("1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣", "7⃣", "8⃣", "9⃣", "🔟")
+        top_text = ''
+        for iteration, user in enumerate(users):
+            top_text += f'\n{top_numbers[iteration]} @id{user["VK_ID"]} ({user["Name"]}) — {general.change_number(user["Rating"])}🏆'
+        await message.answer(
+            f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), топ-10 игроков: {top_text}")
+
+
 # Menu commands
 @bot.on.message(text=["Разное", "разное"])
 @bot.on.message(payload={"cmd": "cmd_other"})
@@ -3025,7 +3084,7 @@ async def group_join_handler(event: GroupTypes.GroupJoin):
 async def widget_update_handler():
     while True:
         time.sleep(30)
-        users = UserAction.get_users()
+        users = UserAction.get_users_top()
         widget_top = {"title": "🔝 Лучшие игоки 🔝",
                       "head":
                           [

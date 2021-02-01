@@ -114,7 +114,7 @@ class UserAction(MySQL):
             else:
                 return result
 
-    def get_users(self):
+    def get_users_top(self):
         with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
             sql = "SELECT * FROM %s WHERE Rating>0 ORDER BY Rating DESC LIMIT 10"
             cursor.execute(sql % config["USERS_TABLES"]["USERS"])
