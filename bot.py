@@ -259,7 +259,7 @@ async def help_handler(message: Message, info: UsersUserXtrCounters):
                              f"Ваш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
     else:
         chats = {ID["ChatID"] for ID in MainData.get_chats()}
-        if message.peer_id in chats:
+        if message.chat_id in chats:
             await message.answer(f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), мои команды:"
                                  f"\n🎉 Развлекательные:\n"
                                  f"⠀⠀↪ Переверни [фраза]\n"
@@ -512,7 +512,7 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
         temp_text = ''
         if category is None:
             chats = {ID["ChatID"] for ID in MainData.get_chats()}
-            if message.peer_id in chats:
+            if message.chat_id in chats:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), разделы магазина:\n'
                                      f'🚙 Транспорт:\n'
                                      f'⠀🚗 Машины\n'
@@ -1833,7 +1833,7 @@ async def games_handler(message: Message, info: UsersUserXtrCounters):
                              f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
     else:
         chats = {ID["ChatID"] for ID in MainData.get_chats()}
-        if message.peer_id in chats:
+        if message.chat_id in chats:
             await message.answer(f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), мои игры: \n"
                                  f"🔫 Рулетка - русская рулетка\n"
                                  f"🎲 Кубик [1-6]\n"
@@ -1882,7 +1882,7 @@ async def game_roulette_handler(message: Message, info: UsersUserXtrCounters):
         user[0]["Roulette_Shots"] = 1
         UserAction.save_user(message.from_id, user)
         chats = {ID["ChatID"] for ID in MainData.get_chats()}
-        if message.peer_id in chats:
+        if message.chat_id in chats:
             await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы начали игру в \"Русскую рулетку\" 👍\n"
                                  f"🔫 Для игры введите \"выстрелить\"\n"
                                  f"❌ Чтобы выйти из игры, напишет \"остановиться\"",
@@ -1919,7 +1919,7 @@ async def game_roulette_shot_handler(message: Message, info: UsersUserXtrCounter
             user[0]["Roulette_Shots"] = 1
             UserAction.save_user(message.from_id, user)
             chats = {ID["ChatID"] for ID in MainData.get_chats()}
-            if message.peer_id in chats:
+            if message.chat_id in chats:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы начали игру в \"Русскую рулетку\" 👍\n'
                                      f'🔫 Для игры введите \"выстрелить\"\n'
                                      f'❌ Чтобы выйти из игры, напишет \"остановиться\"',
@@ -1944,7 +1944,7 @@ async def game_roulette_shot_handler(message: Message, info: UsersUserXtrCounter
                 if user[0]["Money"] >= 800:
                     heal_money = random.randint(1, 8) * 100
                     chats = {ID["ChatID"] for ID in MainData.get_chats()}
-                    if message.peer_id in chats:
+                    if message.chat_id in chats:
                         await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы выстрелили на '
                                              f'{user[0]["Roulette_Shots"]}-й попытке ☹\n'
                                              f'💸 Ваш выигрыш: {general.change_number(user[0]["Roulette_Shots"] * 100)}$\n'
@@ -1973,7 +1973,7 @@ async def game_roulette_shot_handler(message: Message, info: UsersUserXtrCounter
                     UserAction.save_user(message.from_id, user)
                 else:
                     chats = {ID["ChatID"] for ID in MainData.get_chats()}
-                    if message.peer_id in chats:
+                    if message.chat_id in chats:
                         await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы выстрелили на '
                                              f'{user[0]["Roulette_Shots"]}-й попытке ☹\n'
                                              f'💸 Ваш выигрыш: {general.change_number(user[0]["Roulette_Shots"] * 100)}$',
@@ -2001,7 +2001,7 @@ async def game_roulette_shot_handler(message: Message, info: UsersUserXtrCounter
                 user[0]["Roulette_Shots"] += 1
                 UserAction.save_user(message.from_id, user)
                 chats = {ID["ChatID"] for ID in MainData.get_chats()}
-                if message.peer_id in chats:
+                if message.chat_id in chats:
                     await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы сделали '
                                          f'{user[0]["Roulette_Shots"] - 1}-ю осечку',
                                          keyboard=Keyboard(one_time=False, inline=True).schema(
@@ -2033,7 +2033,7 @@ async def game_roulette_shot_handler(message: Message, info: UsersUserXtrCounter
         user = UserAction.get_user(message.from_id)
         if user[0]["Roulette_Shots"] - 1 <= 0:
             chats = {ID["ChatID"] for ID in MainData.get_chats()}
-            if message.peer_id in chats:
+            if message.chat_id in chats:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы не играли в \"Русскую рулетку\"\n'
                                      f'🔫 Для начала игры введите \"рулетка\"\n',
                                      keyboard=Keyboard(one_time=False, inline=True).schema(
@@ -2059,7 +2059,7 @@ async def game_roulette_shot_handler(message: Message, info: UsersUserXtrCounter
         else:
             if user[0]["Roulette_Shots"] - 1 > 0:
                 chats = {ID["ChatID"] for ID in MainData.get_chats()}
-                if message.peer_id in chats:
+                if message.chat_id in chats:
                     await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы остановилсь на '
                                          f'{user[0]["Roulette_Shots"]}-й попытке 👍\n'
                                          f'💸 Ваш выигрыш: {general.change_number(user[0]["Roulette_Shots"] * 100)}$',
@@ -2101,7 +2101,7 @@ async def game_cube_handler(message: Message, info: UsersUserXtrCounters):
                              f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
     else:
         chats = {ID["ChatID"] for ID in MainData.get_chats()}
-        if message.peer_id in chats:
+        if message.chat_id in chats:
             await message.answer(
                 f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), Вы начали игру в \"Кубик\" 👍\n"
                 f"🎲 Для игры в кубик выбирайте числа от 1 до 6\n",
@@ -2147,7 +2147,7 @@ async def game_cube_number_handler(message: Message, info: UsersUserXtrCounters)
         cube_prize = random.randint(2, 50) * 50
         if cube_temp == int(temp_number):
             chats = {ID["ChatID"] for ID in MainData.get_chats()}
-            if message.peer_id in chats:
+            if message.chat_id in chats:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы угадали 🎉\n'
                                      f'🎲 Выпало число: {cube_temp}\n'
                                      f'💸 Ваш выигрыш: {general.change_number(cube_prize)}$',
@@ -2176,7 +2176,7 @@ async def game_cube_number_handler(message: Message, info: UsersUserXtrCounters)
             UserAction.save_user(message.from_id, user)
         else:
             chats = {ID["ChatID"] for ID in MainData.get_chats()}
-            if message.peer_id in chats:
+            if message.chat_id in chats:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы не угадали 😟\n'
                                      f'🎲 Выпало число: {cube_temp}',
                                      keyboard=Keyboard(one_time=False, inline=True).schema(
@@ -2212,7 +2212,7 @@ async def game_cube_handler(message: Message, info: UsersUserXtrCounters):
                              f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
     else:
         chats = {ID["ChatID"] for ID in MainData.get_chats()}
-        if message.peer_id in chats:
+        if message.chat_id in chats:
             await message.answer(
                 f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), Вы начали игру в \"Монетка\" 👍\n"
                 f"🦅 Для игры в кубик выбирайте \"Орел\" или \"Решка\"\n",
@@ -2248,7 +2248,7 @@ async def game_cube_number_handler(message: Message, info: UsersUserXtrCounters)
         coin_prize = random.randint(2, 25) * 50
         if coin_temp == int(temp_number):
             chats = {ID["ChatID"] for ID in MainData.get_chats()}
-            if message.peer_id in chats:
+            if message.chat_id in chats:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы угадали 🎉\n'
                                      f'🦅 Выпало: {"орел" if coin_temp == 1 else "решка"}\n'
                                      f'💸 Ваш выигрыш: {general.change_number(coin_prize)}$',
@@ -2271,7 +2271,7 @@ async def game_cube_number_handler(message: Message, info: UsersUserXtrCounters)
             UserAction.save_user(message.from_id, user)
         else:
             chats = {ID["ChatID"] for ID in MainData.get_chats()}
-            if message.peer_id in chats:
+            if message.chat_id in chats:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы не угадали 😟\n'
                                      f'🦅 Выпало: {"орел" if coin_temp == 1 else "решка"}',
                                      keyboard=Keyboard(one_time=False, inline=True).schema(
@@ -2484,7 +2484,7 @@ async def other_handler(message: Message, info: UsersUserXtrCounters):
                              f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
     else:
         chats = {ID["ChatID"] for ID in MainData.get_chats()}
-        if message.peer_id in chats:
+        if message.chat_id in chats:
             await message.answer(
                 f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), раздел \"Разное\" 💡",
                 keyboard=Keyboard(one_time=False, inline=True).schema(
@@ -2519,7 +2519,7 @@ async def other_handler(message: Message, info: UsersUserXtrCounters):
                              f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
     else:
         chats = {ID["ChatID"] for ID in MainData.get_chats()}
-        if message.peer_id in chats:
+        if message.chat_id in chats:
             await message.answer(
                 f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), раздел \"Главное меню\" 💡",
                 keyboard=Keyboard(one_time=False, inline=True).schema(
