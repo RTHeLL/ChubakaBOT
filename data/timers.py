@@ -84,3 +84,7 @@ class Timers:
             # Bonus
             sql = f"UPDATE users SET Bonus=Bonus-1 WHERE Bonus>0"
             cursor.execute(sql)
+
+            # Clan guard
+            sql = f"UPDATE clans SET GuardTime=GuardTime-1 WHERE GuardTime>0"
+            cursor.execute(sql)
