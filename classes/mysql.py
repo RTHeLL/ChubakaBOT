@@ -314,6 +314,18 @@ class MainData(MySQL):
             else:
                 return result
 
+    # Function get clans for attack
+    def get_clans_attack(self, rating):
+        with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            sql = "SELECT * FROM %s WHERE (Rating>%s-1000 AND Rating<%s+1000) AND GuardTime<1"
+            cursor.execute(sql % (config["MAIN_TABLES"]["CLANS"], rating, rating))
+            result = cursor.fetchall()
+            cursor.close()
+            if len(result) == 0:
+                return False
+            else:
+                return result
+
     # Function get clan where id
     def get_clan(self, clan_id):
         with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:

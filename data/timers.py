@@ -53,19 +53,19 @@ class Timers:
                     if user["Workers_In_Business"] != MainData.get_data('businesses')[user["Business"] - 1][
                         "BusinessWorkers"]:
                         cursor.execute(sql % (
-                        math.trunc(MainData.get_data('businesses')[user["Business"] - 1]["MoneyPerHouse"] / 2),
-                        user["VK_ID"]))
+                            math.trunc(MainData.get_data('businesses')[user["Business"] - 1]["MoneyPerHouse"] / 2),
+                            user["VK_ID"]))
                     else:
                         cursor.execute(sql % (
-                        MainData.get_data('businesses')[user["Business"] - 1]["MoneyPerHouse"], user["VK_ID"]))
+                            MainData.get_data('businesses')[user["Business"] - 1]["MoneyPerHouse"], user["VK_ID"]))
                 elif user["BusinessLevel"] == 2:
                     if user["Workers_In_Business"] != MainData.get_data('businesses')[user["Business"] - 1][
                         "BusinessWorkers"] * 2:
                         cursor.execute(sql % (
-                        MainData.get_data('businesses')[user["Business"] - 1]["MoneyPerHouse"], user["VK_ID"]))
+                            MainData.get_data('businesses')[user["Business"] - 1]["MoneyPerHouse"], user["VK_ID"]))
                     else:
                         cursor.execute(sql % (
-                        MainData.get_data('businesses')[user["Business"] - 1]["MoneyPerHouse"] * 2, user["VK_ID"]))
+                            MainData.get_data('businesses')[user["Business"] - 1]["MoneyPerHouse"] * 2, user["VK_ID"]))
 
             # Energy
             sql = f"UPDATE users SET Energy=Energy+1 WHERE Energy<30"
@@ -87,4 +87,8 @@ class Timers:
 
             # Clan guard
             sql = f"UPDATE clans SET GuardTime=GuardTime-1 WHERE GuardTime>0"
+            cursor.execute(sql)
+
+            # Clan attack timer
+            sql = f"UPDATE clans SET TimeAttack=TimeAttack-1 WHERE TimeAttack>0"
             cursor.execute(sql)

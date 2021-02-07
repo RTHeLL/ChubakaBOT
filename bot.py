@@ -2589,18 +2589,33 @@ async def clan_handler(message: Message, info: UsersUserXtrCounters, action: Opt
                                  f"1⃣4⃣ Клан атака — напасть на другой клан\n"
                                  f"1⃣5⃣ Клан ранг [ID игрока] — изменить ранг игроку\n")
         elif action is None and user[0]["ClanID"] != 0:
-            await message.answer(f"@id{message.from_id} ({user[0]['Name']}), информация о клане «{clan[0]['Name']}»:\n\n"
-                                 f"📜 ID клана: {clan[0]['ID']}\n"
-                                 f"👑 Рейтинг клана: {clan[0]['Rating']}\n"
-                                 f"💰 В казне клана: {general.change_number(clan[0]['Money'])}$\n"
-                                 f"⚔ В клане состоит: {clan[0]['Players']}/50 участников\n"
-                                 f"🥇 Побед: {clan[0]['Victories']}, поражений: {clan[0]['Losses']}\n\n"
-                                 f"🔒 Щит: {time.strftime('%H ч. %M мин.', time.gmtime(clan[0]['GuardTime'] * 60)) if clan[0]['GuardTime'] >= 60 else time.strftime('%M мин.', time.gmtime(clan[0]['GuardTime'] * 60))}\n"
-                                 f"🗡 Рыцарей: {clan[0]['Knights']}\n"
-                                 f"🏹 Лучников: {clan[0]['Bowman']}\n\n"
-                                 f"👑 Создатель клана: "
-                                 f"@id{UserAction.get_user_by_gameid(clan[0]['OwnerID'])[0]['VK_ID']} "
-                                 f"({UserAction.get_user_by_gameid(clan[0]['OwnerID'])[0]['Name']})\n")
+            if clan[0]["GuardTime"] > 0:
+                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), информация о клане «{clan[0]['Name']}»:\n\n"
+                                     f"📜 ID клана: {clan[0]['ID']}\n"
+                                     f"👑 Рейтинг клана: {clan[0]['Rating']}\n"
+                                     f"💰 В казне клана: {general.change_number(clan[0]['Money'])}$\n"
+                                     f"⚔ В клане состоит: {clan[0]['Players']}/50 участников\n"
+                                     f"🥇 Побед: {clan[0]['Victories']}, поражений: {clan[0]['Losses']}\n\n"
+                                     f"🔒 Щит: {time.strftime('%H ч. %M мин.', time.gmtime(clan[0]['GuardTime'] * 60)) if clan[0]['GuardTime'] >= 60 else time.strftime('%M мин.', time.gmtime(clan[0]['GuardTime'] * 60))}\n\n"
+                                     f"🛡 Войско:\n"
+                                     f"⠀🗡 Рыцарей: {clan[0]['Knights']}\n"
+                                     f"⠀🏹 Лучников: {clan[0]['Bowman']}\n\n"
+                                     f"👑 Создатель клана: "
+                                     f"@id{UserAction.get_user_by_gameid(clan[0]['OwnerID'])[0]['VK_ID']} "
+                                     f"({UserAction.get_user_by_gameid(clan[0]['OwnerID'])[0]['Name']})\n")
+            else:
+                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), информация о клане «{clan[0]['Name']}»:\n\n"
+                                     f"📜 ID клана: {clan[0]['ID']}\n"
+                                     f"👑 Рейтинг клана: {clan[0]['Rating']}\n"
+                                     f"💰 В казне клана: {general.change_number(clan[0]['Money'])}$\n"
+                                     f"⚔ В клане состоит: {clan[0]['Players']}/50 участников\n"
+                                     f"🥇 Побед: {clan[0]['Victories']}, поражений: {clan[0]['Losses']}\n\n"
+                                     f"🛡 Войско:\n"
+                                     f"⠀🗡 Рыцарей: {clan[0]['Knights']}\n"
+                                     f"⠀🏹 Лучников: {clan[0]['Bowman']}\n\n"
+                                     f"👑 Создатель клана: "
+                                     f"@id{UserAction.get_user_by_gameid(clan[0]['OwnerID'])[0]['VK_ID']} "
+                                     f"({UserAction.get_user_by_gameid(clan[0]['OwnerID'])[0]['Name']})\n")
         elif action.lower() == 'помощь':
             await message.answer(f"@id{message.from_id} ({user[0]['Name']}),\n"
                                  f"1⃣ Клан — информация о клане\n"
@@ -2784,8 +2799,24 @@ async def clan_handler(message: Message, info: UsersUserXtrCounters, action: Opt
                 await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы не состоите в клане")
             else:
                 if param is None:
-                    await message.answer(f"@id{message.from_id} ({user[0]['Name']}), чтобы пополнить казну, "
-                                         f"используйте: клан казна [сумма]")
+                    temp_text = ''
+                    payers = clan[0]["MoneyRefill"].split(',')[:-1]
+                    for payer in payers:
+                        payer_user = UserAction.get_user_by_gameid(payer.split("-")[0])
+                        if payer_user[0]["ClanRank"] == 2:
+                            temp_text += f'\n🎖 @id{payer_user[0]["VK_ID"]} ' \
+                                         f'({payer_user[0]["Name"]}) ' \
+                                         f'({payer.split("-")[0]}) пополнил на {general.change_number(int(payer.split("-")[1]))}$'
+                        elif payer_user[0]["ClanRank"] == 3:
+                            temp_text += f'\n👑 @id{payer_user[0]["VK_ID"]} ' \
+                                         f'({payer_user[0]["Name"]}) ' \
+                                         f'({payer.split("-")[0]}) пополнил на {general.change_number(int(payer.split("-")[1]))}$'
+                        else:
+                            temp_text += f'\n🗿 @id{payer_user[0]["VK_ID"]} ' \
+                                         f'({payer_user[0]["Name"]}) ' \
+                                         f'({payer.split("-")[0]}) пополнил на {general.change_number(int(payer.split("-")[1]))}$'
+
+                    await message.answer(f"@id{message.from_id} ({user[0]['Name']}), последние 7 пополнений казны: {temp_text}")
                 else:
                     if not general.isint(param):
                         await message.answer(f"@id{message.from_id} ({user[0]['Name']}), сумма должна быть числом")
@@ -2794,7 +2825,7 @@ async def clan_handler(message: Message, info: UsersUserXtrCounters, action: Opt
                     else:
                         user[0]["Money"] -= int(param)
                         clan[0]["Money"] += int(param)
-                        clan[0]["MoneyRefill"] += f'{user[0]["ID"]}-{param},'
+                        clan[0]["MoneyRefill"] = clan[0]["MoneyRefill"] + f'{user[0]["ID"]}-{param},' if len(clan[0]["MoneyRefill"].split(',')[:-1]) < 7 else f'{user[0]["ID"]}-{param},'
                         UserAction.save_user(message.from_id, user)
                         MainData.save_clan(clan[0]["ID"], clan)
                         await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
@@ -2840,7 +2871,10 @@ async def clan_handler(message: Message, info: UsersUserXtrCounters, action: Opt
             else:
                 if param is None or param2 is None:
                     await message.answer(f"@id{message.from_id} ({user[0]['Name']}), чтобы выдать ранг, "
-                                         f"используйте: клан ранг [ID игрока] [ранг]")
+                                         f"используйте: клан ранг [ID игрока] [ранг]\n\n"
+                                         f"1 - участник\n"
+                                         f"2 - администратор\n"
+                                         f"3 - руководитель")
                 else:
                     if not general.isint(param):
                         await message.answer(f"@id{message.from_id} ({user[0]['Name']}), ID игрока должен быть числом")
@@ -2862,6 +2896,102 @@ async def clan_handler(message: Message, info: UsersUserXtrCounters, action: Opt
                                              f"руководитель @id{user[0]['VK_ID']} ({user[0]['Name']}) "
                                              f"изменил Вам ранг на {param2}",
                                              user_id=rang_user[0]['VK_ID'])
+        elif action.lower() == 'магазин':
+            if user[0]["ClanID"] == 0:
+                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы не состоите в клане")
+            elif user[0]["ClanRank"] < 2:
+                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), у Вас недостаточно прав, чтобы использовать магазин для этого клана")
+            else:
+                if param is None or param2 is None:
+                    if param == '3':
+                        if clan[0]["Money"] < 1000000:
+                            await message.answer(f"@id{message.from_id} ({user[0]['Name']}), в казне клана недостаточно денег")
+                        else:
+                            clan[0]["Money"] -= 1000000
+                            clan[0]["GuardTime"] += 1440
+                            MainData.save_clan(clan[0]["ID"], clan)
+                            await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
+                                                 f"Вы купили щит на сутки за "
+                                                 f"{general.change_number(1000000)}$")
+                    else:
+                        await message.answer(f"@id{message.from_id} ({user[0]['Name']}), доступный товар:\n"
+                                             f"1. Рыцарь - 400.000$\n"
+                                             f"2. Лучник - 600.000$\n"
+                                             f"3. Щит на сутки - 1.000.000$\n"
+                                             f"🔎 Купить: «Клан магазин [номер] [количество]»")
+                else:
+                    if not general.isint(param):
+                        await message.answer(f"@id{message.from_id} ({user[0]['Name']}), ID товара должен быть числом")
+                    elif not general.isint(param2):
+                        await message.answer(f"@id{message.from_id} ({user[0]['Name']}), количество долнжо быть числом")
+                    else:
+                        if param == '1':
+                            if clan[0]["Money"] < 400000*int(param2):
+                                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), в казне клана недостаточно денег")
+                            else:
+                                clan[0]["Money"] -= 400000*int(param2)
+                                clan[0]["Knights"] += int(param2)
+                                MainData.save_clan(clan[0]["ID"], clan)
+                                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
+                                                     f"Вы купили {general.change_number(int(param2))} рыцаря(-ей) за "
+                                                     f"{general.change_number(400000*int(param2))}$")
+                        if param == '2':
+                            if clan[0]["Money"] < 600000*int(param2):
+                                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), в казне клана недостаточно денег")
+                            else:
+                                clan[0]["Money"] -= 600000*int(param2)
+                                clan[0]["Bowman"] += int(param2)
+                                MainData.save_clan(clan[0]["ID"], clan)
+                                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
+                                                     f"Вы купили {general.change_number(int(param2))} лучника(-ов) за "
+                                                     f"{general.change_number(600000*int(param2))}$")
+                        else:
+                            await message.answer(f"@id{message.from_id} ({user[0]['Name']}), такого товара не существует")
+        elif action.lower() == 'атака':
+            if user[0]["ClanID"] == 0:
+                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы не состоите в клане")
+            elif user[0]["ClanRank"] < 2:
+                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), у Вас недостаточно прав, чтобы атаковать")
+            else:
+                if clan[0]["TimeAttack"] > 0:
+                    await message.answer(f"@id{message.from_id} ({user[0]['Name']}), атаковать можно раз в 10 минут")
+                else:
+                    clan_for_attack = [random.choice(MainData.get_clans_attack(clan[0]["Rating"])) if MainData.get_clans_attack(clan[0]["Rating"]) is not False else 0]
+                    if clan_for_attack == 0:
+                        await message.answer(f"@id{message.from_id} ({user[0]['Name']}), не удалось найти подходящий для атаки клан...")
+                    else:
+                        clan[0]["GuardTime"] = 0
+                        if (clan[0]["Knights"]+clan[0]["Bowman"]) < (clan_for_attack[0]["Knights"]+clan_for_attack[0]["Bowman"]):
+                            await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
+                                                 f"ваш клан потерпел поражение перед «{clan_for_attack[0]['Name']}», "
+                                                 f"вы потеряли {math.trunc(clan[0]['Knights']/1.7)+math.trunc(clan[0]['Bowman']/1.7)} своего войска "
+                                                 f"и одну единицу рейтинга ❌")
+                            clan[0]["Knights"] = math.trunc(clan[0]["Knights"]/1.7)
+                            clan[0]["Bowman"] = math.trunc(clan[0]["Bowman"]/1.7)
+                            clan[0]["Rating"] = 0 if clan[0]["Rating"]-1 < 1 else clan[0]["Rating"]-1
+                            clan[0]["Losses"] += 1
+                            clan[0]["TimeAttack"] = 10
+                            clan_for_attack[0]["Rating"] += 1
+                            clan_for_attack[0]["Victories"] += 1
+                            MainData.save_clan(clan[0]["ID"], clan)
+                            MainData.save_clan(clan_for_attack[0]["ID"], clan_for_attack)
+                        elif (clan[0]["Knights"]+clan[0]["Bowman"]) > (clan_for_attack[0]["Knights"]+clan_for_attack[0]["Bowman"]):
+                            take_money = math.trunc(clan_for_attack[0]["Money"]/random.randint(10, 20))
+                            clan_for_attack[0]["Rating"] = 0 if clan[0]["Rating"]-1 < 1 else clan[0]["Rating"]-1
+                            clan_for_attack[0]["Losses"] += 1
+                            clan_for_attack[0]["GuardTime"] = 60
+                            clan_for_attack[0]["Money"] -= take_money
+                            clan[0]["Rating"] += 1
+                            clan[0]["Victories"] += 1
+                            clan[0]["TimeAttack"] = 10
+                            clan[0]["Money"] += take_money
+                            MainData.save_clan(clan[0]["ID"], clan)
+                            MainData.save_clan(clan_for_attack[0]["ID"], clan_for_attack)
+                            await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
+                                                 f"ваш клан одержал победу перед «{clan_for_attack[0]['Name']}», украдено: {general.change_number(take_money)}$. ✅")
+                        else:
+                            await message.answer(f"@id{message.from_id} ({user[0]['Name']}), у Вас слишком мало войска, чтобы драться с этим кланом\n"
+                                                 f"Используйте \"клан магазин\", чтобы приобрести войско")
         else:
             await message.answer(f"@id{message.from_id} ({user[0]['Name']}), проверьте правильность введенных данных!")
 
