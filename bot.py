@@ -3047,7 +3047,7 @@ async def clan_handler(message: Message, info: UsersUserXtrCounters, action: Opt
             if user[0]["ClanID"] == 0:
                 await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы не состоите в клане")
             else:
-                if param is None:
+                if param is None or param2 is None:
                     temp_text = ''
                     payers = clan[0]["MoneyRefill"].split(',')[:-1]
                     for payer in payers:
@@ -3066,24 +3066,43 @@ async def clan_handler(message: Message, info: UsersUserXtrCounters, action: Opt
                                          f'({payer.split("-")[0]}) пополнил на {general.change_number(int(payer.split("-")[1]))}$'
 
                     await message.answer(
-                        f"@id{message.from_id} ({user[0]['Name']}), последние 7 пополнений казны: {temp_text}")
-                else:
-                    if not general.isint(param):
+                        f"@id{message.from_id} ({user[0]['Name']}), последние 7 пополнений казны: {temp_text}\n\n"
+                        f"🔎 Чтобы пополнить/снять, используйте \"клан казна пополнить/снять [сумма]\"")
+                elif param.lower() == 'пополнить':
+                    if not general.isint(param2):
                         await message.answer(f"@id{message.from_id} ({user[0]['Name']}), сумма должна быть числом")
-                    elif user[0]["Money"] < int(param):
+                    elif user[0]["Money"] < int(param2):
                         await message.answer(f"@id{message.from_id} ({user[0]['Name']}), у Вас нет столько денег")
                     else:
-                        user[0]["Money"] -= int(param)
-                        clan[0]["Money"] += int(param)
-                        clan[0]["MoneyRefill"] = clan[0]["MoneyRefill"] + f'{user[0]["ID"]}-{param},' if len(
-                            clan[0]["MoneyRefill"].split(',')[:-1]) < 7 else f'{user[0]["ID"]}-{param},'
+                        user[0]["Money"] -= int(param2)
+                        clan[0]["Money"] += int(param2)
+                        clan[0]["MoneyRefill"] = clan[0]["MoneyRefill"] + f'{user[0]["ID"]}-{param2},' if len(
+                            clan[0]["MoneyRefill"].split(',')[:-1]) < 7 else f'{user[0]["ID"]}-{param2},'
                         UserAction.save_user(message.from_id, user)
                         MainData.save_clan(clan[0]["ID"], clan)
                         await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
-                                             f"Вы пополнили казну клана на {general.change_number(int(param))}$")
+                                             f"Вы пополнили казну клана на {general.change_number(int(param2))}$")
                         await message.answer(f"@id{UserAction.get_user_by_gameid(clan[0]['OwnerID'])[0]['VK_ID']} "
                                              f"({UserAction.get_user_by_gameid(clan[0]['OwnerID'])[0]['Name']}), игрок "
-                                             f"@id{user[0]['VK_ID']} ({user[0]['Name']}) пополнил казну на {general.change_number(int(param))}$",
+                                             f"@id{user[0]['VK_ID']} ({user[0]['Name']}) пополнил казну на {general.change_number(int(param2))}$",
+                                             user_id=UserAction.get_user_by_gameid(clan[0]['OwnerID'])[0]['VK_ID'])
+                elif param.lower() == 'снять':
+                    if not general.isint(param2):
+                        await message.answer(f"@id{message.from_id} ({user[0]['Name']}), сумма должна быть числом")
+                    elif user[0]["ClanRank"] < 4:
+                        await message.answer(f"@id{message.from_id} ({user[0]['Name']}), у Вас недостаточно прав для снятия денег с казны")
+                    elif clan[0]["Money"] < int(param2):
+                        await message.answer(f"@id{message.from_id} ({user[0]['Name']}), в казне клана нет столько денег")
+                    else:
+                        user[0]["Money"] += int(param2)
+                        clan[0]["Money"] -= int(param2)
+                        UserAction.save_user(message.from_id, user)
+                        MainData.save_clan(clan[0]["ID"], clan)
+                        await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
+                                             f"Вы сняли из казны кланы {general.change_number(int(param2))}$")
+                        await message.answer(f"@id{UserAction.get_user_by_gameid(clan[0]['OwnerID'])[0]['VK_ID']} "
+                                             f"({UserAction.get_user_by_gameid(clan[0]['OwnerID'])[0]['Name']}), игрок "
+                                             f"@id{user[0]['VK_ID']} ({user[0]['Name']}) снял из казны {general.change_number(int(param2))}$",
                                              user_id=UserAction.get_user_by_gameid(clan[0]['OwnerID'])[0]['VK_ID'])
         elif action.lower() == 'изменить':
             if user[0]["ClanID"] == 0:
@@ -4025,7 +4044,7 @@ async def group_join_handler(event: GroupTypes.GroupJoin):
 
 async def widget_update_handler():
     while True:
-        time.sleep(30)
+        time.sleep(300)
         users = UserAction.get_users_top()
         widget_top = {"title": "🔝 Лучшие игоки 🔝",
                       "head":
@@ -4049,7 +4068,7 @@ def start_update_widget():
     loop.run_until_complete(widget_update_handler())
 
 
-# Thread(target=start_update_widget).start()
+Thread(target=start_update_widget).start()
 bot.labeler.message_view.register_middleware(NoBotMiddleware())
 bot.labeler.message_view.register_middleware(RegistrationMiddleware())
 bot.labeler.message_view.register_middleware(InfoMiddleware())
