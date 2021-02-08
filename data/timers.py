@@ -92,3 +92,6 @@ class Timers:
             # Clan attack timer
             sql = f"UPDATE clans SET TimeAttack=TimeAttack-1 WHERE TimeAttack>0"
             cursor.execute(sql)
+
+            # Potion timer
+            sql = f"UPDATE users SET PotionTime=PotionTime-1 WHERE PotionTime>0"
