@@ -3160,8 +3160,8 @@ async def clan_handler(message: Message, info: UsersUserXtrCounters, action: Opt
                         await message.answer(f"@id{message.from_id} ({user[0]['Name']}), ID игрока должен быть числом")
                     elif not general.isint(param2):
                         await message.answer(f"@id{message.from_id} ({user[0]['Name']}), ранг должен быть числом")
-                    elif int(param2) > 3 or int(param2) < 1:
-                        await message.answer(f"@id{message.from_id} ({user[0]['Name']}), ранг может быть от 1 до 3\n\n"
+                    elif int(param2) > 5 or int(param2) < 1:
+                        await message.answer(f"@id{message.from_id} ({user[0]['Name']}), ранг может быть от 1 до 5\n\n"
                                              f"1 - {ranks['1']}\n"
                                              f"2 - {ranks['2']}\n"
                                              f"3 - {ranks['3']}\n"
