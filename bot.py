@@ -4049,7 +4049,7 @@ def start_update_widget():
     loop.run_until_complete(widget_update_handler())
 
 
-Thread(target=start_update_widget).start()
+# Thread(target=start_update_widget).start()
 bot.labeler.message_view.register_middleware(NoBotMiddleware())
 bot.labeler.message_view.register_middleware(RegistrationMiddleware())
 bot.labeler.message_view.register_middleware(InfoMiddleware())
