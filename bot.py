@@ -292,7 +292,12 @@ async def help_handler(message: Message, info: UsersUserXtrCounters):
                 f"⠀⠀💰 Банк\n"
                 f"⠀⠀📦 Кейсы\n"
                 f"⠀⠀🔋 Ферма\n"
-                f"⠀⠀💎 Бонус\n\n"
+                f"⠀⠀🎁 Бонус\n\n"
+                f"🔦 Добыча:\n"
+                f"⠀⠀🥈 Добывать железо\n"
+                f"⠀⠀🏅 Добывать золото\n"
+                f"⠀⠀💎 Добывать алмазы\n"
+                f"⠀⠀🎆 Добывать материю\n\n"
                 f"💡 Разное:\n"
                 f"⠀⠀⚔ Клан\n"
                 f"⠀⠀🍹 Зелья\n"
@@ -365,7 +370,12 @@ async def help_handler(message: Message, info: UsersUserXtrCounters):
                 f"⠀⠀💰 Банк\n"
                 f"⠀⠀📦 Кейсы\n"
                 f"⠀⠀🔋 Ферма\n"
-                f"⠀⠀💎 Бонус\n\n"
+                f"⠀⠀🎁 Бонус\n\n"
+                f"🔦 Добыча:\n"
+                f"⠀⠀🥈 Добывать железо\n"
+                f"⠀⠀🏅 Добывать золото\n"
+                f"⠀⠀💎 Добывать алмазы\n"
+                f"⠀⠀🎆 Добывать материю\n\n"
                 f"💡 Разное:\n"
                 f"⠀⠀⚔ Клан\n"
                 f"⠀⠀🍹 Зелья\n"
@@ -445,6 +455,17 @@ async def profile_handler(message: Message, info: UsersUserXtrCounters):
                             f'({general.change_number(user[1]["Farms"])} шт.)\n'
         if user[1]["Phone"] > 0:
             temp_message += f'⠀📱 Телефон: {MainData.get_data("phones")[user[1]["Phone"] - 1]["PhoneName"]}\n'
+
+        if user[0]["Iron"] > 0 or user[0]["Gold"] > 0 or user[0]["Diamond"] > 0 or user[0]["Matter"] > 0:
+            temp_message += f'\n🔦 Ресурсы:\n'
+            if user[0]["Iron"] > 0:
+                temp_message += f'⠀🥈 Железо: {general.change_number(user[0]["Iron"])} ед.\n'
+            if user[0]["Gold"] > 0:
+                temp_message += f'⠀🏅 Золото: {general.change_number(user[0]["Gold"])} ед.\n'
+            if user[0]["Diamond"] > 0:
+                temp_message += f'⠀💎 Алмазы: {general.change_number(user[0]["Diamond"])} ед.\n'
+            if user[0]["Matter"] > 0:
+                temp_message += f'⠀🎆 Материя: {general.change_number(user[0]["Matter"])} ед.\n'
 
         temp_message += f'\n📗 Дата регистрации: {user[0]["Register_Data"].strftime("%d.%m.%Y, %H:%M:%S")}\n'
         await message.answer(temp_message)
@@ -640,7 +661,7 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
                         await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы приобрели себе '
                                              f'{shop_data[1][int(product) - 1]["YachtName"]} за '
                                              f'{general.change_number(shop_data[1][int(product) - 1]["Price"])}$')
-        elif category.lower() == 'самолеты':
+        elif category.lower() == 'самолеты' or category.lower() == 'самолёты':
             if product is None:
                 for airplane in shop_data_sorted[2]:
                     temp_text += f'\n🔸 {airplane["ID"]}. {airplane["AirplaneName"]} ' \
@@ -1300,7 +1321,11 @@ async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, pro
                                  f"⠀👑 рейтинг [кол-во]⠀⠀{general.change_number(math.trunc(MainData.get_settings()[0]['Rating_Price'] / 2))}$/ед.\n"
                                  f"⠀💼 бизнес\n"
                                  f"⠀🌐 биткоин [кол-во]⠀⠀{general.change_number(math.trunc(MainData.get_settings()[0]['BTC_USD_Curse'] / 2))}$/ед.\n"
-                                 f"⠀🐸 питомец")
+                                 f"⠀🐸 питомец\n"
+                                 f"⠀🥈 железо [кол-во]⠀⠀{general.change_number(MainData.get_settings()[0]['IronPrice'])}$/ед.\n"
+                                 f"⠀🏅 золото [кол-во]⠀⠀{general.change_number(MainData.get_settings()[0]['GoldPrice'])}$/ед.\n"
+                                 f"⠀💎 алмазы [кол-во]⠀⠀{general.change_number(MainData.get_settings()[0]['DiamondPrice'])}$/ед.\n"
+                                 f"⠀🎆 материю [кол-во]⠀⠀{general.change_number(MainData.get_settings()[0]['MatterPrice'])}$/ед.\n")
         elif property_name == 'машина':
             if user[1]["Car"] == 0:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет машины! Для покупки '
@@ -1462,6 +1487,66 @@ async def sellproperty_handler(message: Message, info: UsersUserXtrCounters, pro
                 user[0]["Money"] += math.trunc(shop_data[10][user[1]["Motorcycle"] - 1]["Price"] / 2)
                 user[1]["Motorcycle"] = 0
                 UserAction.save_user(message.from_id, user)
+        elif property_name == 'железо':
+            if count is None or count == 0:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), для продажи железа используйте: '
+                                     f'продать железо [кол-во]')
+            else:
+                if user[0]["Iron"] < count:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет столько железа! Для '
+                                         f'добычи используйте: добывать железо')
+                else:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы продали '
+                                         f'{general.change_number(count)} железа за '
+                                         f'{general.change_number(MainData.get_settings()[0]["IronPrice"] * count)}$')
+                    user[0]["Money"] += MainData.get_settings()[0]["IronPrice"] * count
+                    user[0]["Iron"] -= count
+                    UserAction.save_user(message.from_id, user)
+        elif property_name == 'золото':
+            if count is None or count == 0:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), для продажи золота используйте: '
+                                     f'продать золото [кол-во]')
+            else:
+                if user[0]["Gold"] < count:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет столько золота! Для '
+                                         f'добычи используйте: добывать золото')
+                else:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы продали '
+                                         f'{general.change_number(count)} золота за '
+                                         f'{general.change_number(MainData.get_settings()[0]["GoldPrice"] * count)}$')
+                    user[0]["Money"] += MainData.get_settings()[0]["GoldPrice"] * count
+                    user[0]["Gold"] -= count
+                    UserAction.save_user(message.from_id, user)
+        elif property_name == 'алмазы':
+            if count is None or count == 0:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), для продажи алмазов используйте: '
+                                     f'продать алмазы [кол-во]')
+            else:
+                if user[0]["Diamond"] < count:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет столько алмазов! Для '
+                                         f'добычи используйте: добывать алмазы')
+                else:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы продали '
+                                         f'{general.change_number(count)} алмаза(-ов) за '
+                                         f'{general.change_number(MainData.get_settings()[0]["DiamondPrice"] * count)}$')
+                    user[0]["Money"] += MainData.get_settings()[0]["DiamondPrice"] * count
+                    user[0]["Diamond"] -= count
+                    UserAction.save_user(message.from_id, user)
+        elif property_name == 'материю':
+            if count is None or count == 0:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), для продажи материи используйте: '
+                                     f'продать матрею [кол-во]')
+            else:
+                if user[0]["Matter"] < count:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет столько матери! Для '
+                                         f'добычи используйте: добывать материю')
+                else:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы продали '
+                                         f'{general.change_number(count)} материи за '
+                                         f'{general.change_number(MainData.get_settings()[0]["MatterPrice"] * count)}$')
+                    user[0]["Money"] += MainData.get_settings()[0]["MatterPrice"] * count
+                    user[0]["Matter"] -= count
+                    UserAction.save_user(message.from_id, user)
         else:
             await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), проверьте правильность введенных данных!')
 
@@ -2935,7 +3020,7 @@ async def clan_handler(message: Message, info: UsersUserXtrCounters, action: Opt
                                 await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
                                                      f"Вы купили {general.change_number(int(param2))} рыцаря(-ей) за "
                                                      f"{general.change_number(400000*int(param2))}$")
-                        if param == '2':
+                        elif param == '2':
                             if clan[0]["Money"] < 600000*int(param2):
                                 await message.answer(f"@id{message.from_id} ({user[0]['Name']}), в казне клана недостаточно денег")
                             else:
@@ -3106,6 +3191,80 @@ async def farm_handler(message: Message, info: UsersUserXtrCounters, action: Opt
             UserAction.save_user(message.from_id, user)
         else:
             await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), проверьте правильность введенных данных!')
+
+
+# Mining commands
+@bot.on.message(text=["Добывать", "добывать"])
+@bot.on.message(text=["Добывать <param>", "добывать <param>"])
+async def mining_handler(message: Message, info: UsersUserXtrCounters, param: Optional[str] = None):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        user = UserAction.get_user(message.from_id)
+        if param is None:
+            await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), '
+                                 f'используйте: добывать [железо/золото/алмазы/материю]')
+        else:
+            if user[0]["Energy"] == 0:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы слишком устали, необходимо подождать 🚫\n'
+                                     f'У Вас {user[0]["Energy"]} ⚡')
+            total_mined = random.randint(5, 20)
+            if param == 'железо':
+                user[0]["Iron"] += total_mined
+                user[0]["Energy"] -= 1
+                user[0]["EXP"] += 1
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы добыли {total_mined} железа\n\n'
+                                     f'У Вас:\n'
+                                     f'⠀Железо: {user[0]["Iron"]} 🥈\n'
+                                     f'⠀Энергия: {user[0]["Energy"]} ⚡\n'
+                                     f'⠀Опыт: {user[0]["EXP"]} ⭐')
+            elif param == 'золото':
+                if user[0]["EXP"] < 1000:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), чтобы добывать золото Вам необходимо иметь 1000+ опыта 🚫\n'
+                                         f'У Вас {user[0]["EXP"]} ⭐')
+                else:
+                    user[0]["Gold"] += total_mined
+                    user[0]["Energy"] -= 1
+                    user[0]["EXP"] += random.randint(1, 3)
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы добыли {total_mined} золота\n\n'
+                                         f'У Вас:\n'
+                                         f'⠀Золото: {user[0]["Gold"]} 🏅\n'
+                                         f'⠀Энергия: {user[0]["Energy"]} ⚡\n'
+                                         f'⠀Опыт: {user[0]["EXP"]} ⭐')
+            elif param == 'алмазы':
+                if user[0]["EXP"] < 2500:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), чтобы добывать алмазы Вам необходимо иметь 2500+ опыта 🚫\n'
+                                         f'У Вас {user[0]["EXP"]} ⭐')
+                else:
+                    user[0]["Diamond"] += total_mined
+                    user[0]["Energy"] -= 1
+                    user[0]["EXP"] += random.randint(2, 6)
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы добыли {total_mined} алмаза(-ов)\n\n'
+                                         f'У Вас:\n'
+                                         f'⠀Алмазы: {user[0]["Diamond"]} 💎\n'
+                                         f'⠀Энергия: {user[0]["Energy"]} ⚡\n'
+                                         f'⠀Опыт: {user[0]["EXP"]} ⭐')
+            elif param == 'материю':
+                if user[0]["EXP"] < 5000 and user[0]["RankLevel"] < 3:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), чтобы добывать материю Вам необходимо иметь 5000+ опыта 🚫\n'
+                                         f'У Вас {user[0]["EXP"]} ⭐\n\n'
+                                         f'Вы так же можете приобресети Premium статус, чтобы добывать данный ресурс.\n'
+                                         f'Испоьзуйте: донат')
+                else:
+                    user[0]["Matter"] += total_mined
+                    user[0]["Energy"] -= 1
+                    user[0]["EXP"] += random.randint(4, 8)
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы добыли {total_mined} материи\n\n'
+                                         f'У Вас:\n'
+                                         f'⠀Материя: {user[0]["Matter"]} 🎆\n'
+                                         f'⠀Энергия: {user[0]["Energy"]} ⚡\n'
+                                         f'⠀Опыт: {user[0]["EXP"]} ⭐')
+            else:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), проверьте правильность введенных данных')
+            UserAction.save_user(message.from_id, user)
 
 
 # Case commands
