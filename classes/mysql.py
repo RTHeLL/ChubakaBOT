@@ -114,6 +114,18 @@ class UserAction(MySQL):
             else:
                 return result
 
+    # Function get users with notifications
+    def get_users_with_notifications(self):
+        with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            sql = "SELECT * FROM %s WHERE `Notifications`=1"
+            cursor.execute(sql % config["USERS_TABLES"]["USERS"])
+            result = cursor.fetchall()
+            cursor.close()
+            if len(result) == 0:
+                return False
+            else:
+                return result
+
     # Function get users for top
     def get_users_top(self):
         with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:

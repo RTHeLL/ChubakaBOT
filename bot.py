@@ -12,7 +12,7 @@ from typing import Optional, Any, List
 
 # Import VKBottle
 from vkbottle import GroupEventType, GroupTypes, Keyboard, ABCHandler, ABCView, \
-    BaseMiddleware, \
+    BaseMiddleware, VKAPIError, \
     CtxStorage, Text, EMPTY_KEYBOARD
 from vkbottle.bot import Bot, Message, rules
 from vkbottle_types.objects import UsersUserXtrCounters
@@ -34,6 +34,7 @@ config = configparser.ConfigParser()
 config.read("config/vk.ini")
 timer = classes.timer
 general = data.general.General()
+CodeError = VKAPIError
 
 # Logs settings
 logging.basicConfig(filename="logs/logs.log")
@@ -505,7 +506,8 @@ async def profile_handler(message: Message, info: UsersUserXtrCounters):
 
         temp_message = f'@id{message.from_id} ({user[0]["Name"]}), Ваш профиль:\n'
         temp_message += f'🔎 ID: {user[0]["ID"]}\n'
-        # Check RankLevel
+
+        # Rank
         if user[0]["RankLevel"] == 2:
             temp_message += f'🔥 VIP игрок\n'
         elif user[0]["RankLevel"] == 3:
@@ -514,7 +516,8 @@ async def profile_handler(message: Message, info: UsersUserXtrCounters):
             temp_message += f'🌀 Модератор\n'
         elif user[0]["RankLevel"] >= 5:
             temp_message += f'👑 Администратор\n'
-        # Basic check
+
+        # Main info
         if user[0]["EXP"] > 0:
             temp_message += f'⭐ Опыта: {general.change_number(user[0]["EXP"])}\n'
         temp_message += f'⚡ Энергия: {general.change_number(user[0]["Energy"])}\n'
@@ -558,6 +561,20 @@ async def profile_handler(message: Message, info: UsersUserXtrCounters):
         if user[1]["Phone"] > 0:
             temp_message += f'⠀📱 Телефон: {MainData.get_data("phones")[user[1]["Phone"] - 1]["PhoneName"]}\n'
 
+        # Potion effect
+        if user[0]["Potion"] > 0 and user[0]["PotionTime"] > 0:
+            temp_message += f'\n🍹 Эффект от зелья:\n'
+            if user[0]["Potion"] == 1:
+                temp_message += f'⠀🍀 Зелье удачи\n'
+                temp_message += f'⠀🕛 Время действия: {time.strftime("%M мин.", time.gmtime(user[0]["PotionTime"] * 60))}\n'
+            elif user[0]["Potion"] == 2:
+                temp_message += f'⠀⚒ Зелье шахтера\n'
+                temp_message += f'⠀🕛 Время действия: {time.strftime("%M мин.", time.gmtime(user[0]["PotionTime"] * 60))}\n'
+            elif user[0]["Potion"] == 3:
+                temp_message += f'⠀❌ Зелье неудачи\n'
+                temp_message += f'⠀🕛 Время действия: {time.strftime("%M мин.", time.gmtime(user[0]["PotionTime"] * 60))}\n'
+
+    # Mined resource
         if user[0]["Iron"] > 0 or user[0]["Gold"] > 0 or user[0]["Diamond"] > 0 or user[0]["Matter"] > 0:
             temp_message += f'\n🔦 Ресурсы:\n'
             if user[0]["Iron"] > 0:
@@ -569,6 +586,7 @@ async def profile_handler(message: Message, info: UsersUserXtrCounters):
             if user[0]["Matter"] > 0:
                 temp_message += f'⠀🎆 Материя: {general.change_number(user[0]["Matter"])} ед.\n'
 
+        # Registration date
         temp_message += f'\n📗 Дата регистрации: {user[0]["Register_Data"].strftime("%d.%m.%Y, %H:%M:%S")}\n'
         await message.answer(temp_message)
 
@@ -1325,6 +1343,183 @@ async def transfer_handler(message: Message, info: UsersUserXtrCounters, gameid:
                                      f'@id{message.from_id} '
                                      f'({user[0]["Name"]}) перевел Вам {general.change_number(money)}$',
                                      user_id=transfer_user[0]["VK_ID"])
+
+
+@bot.on.message(text=["Настройки", "настройки"])
+@bot.on.message(payload={'cmd': "cmd_settings"})
+async def settings_handler(message: Message, info: UsersUserXtrCounters):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: {info.first_name}\n"
+                             f"Ваш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        user = UserAction.get_user(message.from_id)
+        chats = {ID["ChatID"] for ID in MainData.get_chats()}
+        if message.chat_id in chats:
+            if user[0]["Notifications"] == 0:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), настройки:',
+                                     keyboard=Keyboard(one_time=False, inline=True).schema(
+                                         [
+                                             [
+                                                 {"label": "🔔 Включить уведомления", "type": "text",
+                                                  "payload": {"cmd": "settings_notifications_enable"}, "color": "secondary"},
+                                                 {"label": "🔕 Выключить уведомления", "type": "text",
+                                                  "payload": {"cmd": "settings_notifications_disable"},
+                                                  "color": "primary"}
+                                             ],
+                                             [
+                                                 {"label": "◀ В раздел \"разное\"", "type": "text", "payload": {"cmd": "cmd_other"},
+                                                  "color": "positive"}
+                                             ]
+                                         ]
+                                     ).get_json())
+            elif user[0]["Notifications"] == 1:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), настройки:',
+                                     keyboard=Keyboard(one_time=False, inline=True).schema(
+                                         [
+                                             [
+                                                 {"label": "🔔 Включить уведомления", "type": "text",
+                                                  "payload": {"cmd": "settings_notifications_enable"}, "color": "primary"},
+                                                 {"label": "🔕 Выключить уведомления", "type": "text",
+                                                  "payload": {"cmd": "settings_notifications_disable"},
+                                                  "color": "secondary"}
+                                             ],
+                                             [
+                                                 {"label": "◀ В раздел \"разное\"", "type": "text", "payload": {"cmd": "cmd_other"},
+                                                  "color": "positive"}
+                                             ]
+                                         ]
+                                     ).get_json())
+        else:
+            if user[0]["Notifications"] == 0:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), настройки:',
+                                     keyboard=Keyboard(one_time=False, inline=False).schema(
+                                         [
+                                             [
+                                                 {"label": "🔔 Включить уведомления", "type": "text",
+                                                  "payload": {"cmd": "settings_notifications_enable"}, "color": "secondary"},
+                                                 {"label": "🔕 Выключить уведомления", "type": "text",
+                                                  "payload": {"cmd": "settings_notifications_disable"},
+                                                  "color": "primary"}
+                                             ],
+                                             [
+                                                 {"label": "◀ В раздел \"разное\"", "type": "text", "payload": {"cmd": "cmd_other"},
+                                                  "color": "positive"}
+                                             ]
+                                         ]
+                                     ).get_json())
+            elif user[0]["Notifications"] == 1:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), настройки:',
+                                     keyboard=Keyboard(one_time=False, inline=False).schema(
+                                         [
+                                             [
+                                                 {"label": "🔔 Включить уведомления", "type": "text",
+                                                  "payload": {"cmd": "settings_notifications_enable"}, "color": "primary"},
+                                                 {"label": "🔕 Выключить уведомления", "type": "text",
+                                                  "payload": {"cmd": "settings_notifications_disable"},
+                                                  "color": "secondary"}
+                                             ],
+                                             [
+                                                 {"label": "◀ В раздел \"разное\"", "type": "text", "payload": {"cmd": "cmd_other"},
+                                                  "color": "positive"}
+                                             ]
+                                         ]
+                                     ).get_json())
+
+
+@bot.on.message(payload={"cmd": "settings_notifications_enable"})
+@bot.on.message(payload={"cmd": "settings_notifications_disable"})
+async def settings_change_handler(message: Message, info: UsersUserXtrCounters):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: {info.first_name}\n"
+                             f"Ваш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        user = UserAction.get_user(message.from_id)
+        temp = message.payload.split('{"cmd":"settings_')[1].split('"}')[0]
+        if temp == 'notifications_enable':
+            if user[0]["Notifications"] == 1:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас уже включены уведомления')
+            else:
+                user[0]["Notifications"] = 1
+                chats = {ID["ChatID"] for ID in MainData.get_chats()}
+                if message.chat_id in chats:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы включили уведомления',
+                                         keyboard=Keyboard(one_time=False, inline=True).schema(
+                                             [
+                                                 [
+                                                     {"label": "🔔 Включить уведомления", "type": "text",
+                                                      "payload": {"cmd": "settings_notifications_enable"}, "color": "primary"},
+                                                     {"label": "🔕 Выключить уведомления", "type": "text",
+                                                      "payload": {"cmd": "settings_notifications_disable"},
+                                                      "color": "secondary"}
+                                                 ],
+                                                 [
+                                                     {"label": "◀ В раздел \"разное\"", "type": "text", "payload": {"cmd": "cmd_other"},
+                                                      "color": "positive"}
+                                                 ]
+                                             ]
+                                         ).get_json())
+                else:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы включили уведомления',
+                                         keyboard=Keyboard(one_time=False, inline=False).schema(
+                                             [
+                                                 [
+                                                     {"label": "🔔 Включить уведомления", "type": "text",
+                                                      "payload": {"cmd": "settings_notifications_enable"}, "color": "primary"},
+                                                     {"label": "🔕 Выключить уведомления", "type": "text",
+                                                      "payload": {"cmd": "settings_notifications_disable"},
+                                                      "color": "secondary"}
+                                                 ],
+                                                 [
+                                                     {"label": "◀ В раздел \"разное\"", "type": "text", "payload": {"cmd": "cmd_other"},
+                                                      "color": "positive"}
+                                                 ]
+                                             ]
+                                         ).get_json())
+        elif temp == 'notifications_disable':
+            if user[0]["Notifications"] == 0:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас уже отключены уведомления')
+            else:
+                user[0]["Notifications"] = 0
+                chats = {ID["ChatID"] for ID in MainData.get_chats()}
+                if message.chat_id in chats:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы отключили уведомления',
+                                         keyboard=Keyboard(one_time=False, inline=True).schema(
+                                             [
+                                                 [
+                                                     {"label": "🔔 Включить уведомления", "type": "text",
+                                                      "payload": {"cmd": "settings_notifications_enable"}, "color": "secondary"},
+                                                     {"label": "🔕 Выключить уведомления", "type": "text",
+                                                      "payload": {"cmd": "settings_notifications_disable"},
+                                                      "color": "primary"}
+                                                 ],
+                                                 [
+                                                     {"label": "◀ В раздел \"разное\"", "type": "text", "payload": {"cmd": "cmd_other"},
+                                                      "color": "positive"}
+                                                 ]
+                                             ]
+                                         ).get_json())
+                else:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы отключили уведомления',
+                                         keyboard=Keyboard(one_time=False, inline=False).schema(
+                                             [
+                                                 [
+                                                     {"label": "🔔 Включить уведомления", "type": "text",
+                                                      "payload": {"cmd": "settings_notifications_enable"}, "color": "secondary"},
+                                                     {"label": "🔕 Выключить уведомления", "type": "text",
+                                                      "payload": {"cmd": "settings_notifications_disable"},
+                                                      "color": "primary"}
+                                                 ],
+                                                 [
+                                                     {"label": "◀ В раздел \"разное\"", "type": "text", "payload": {"cmd": "cmd_other"},
+                                                      "color": "positive"}
+                                                 ]
+                                             ]
+                                         ).get_json())
+        UserAction.save_user(message.from_id, user)
 
 
 @bot.on.message(text=["Выбери <item1> <item2>", "выбери <item1> <item2>"])
@@ -2774,6 +2969,44 @@ async def donate_handler(message: Message, info: UsersUserXtrCounters):
                              f"🎲 При покупке укажите ваш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
 
 
+# Work commands
+@bot.on.message(text=["Работа", "работа"])
+@bot.on.message(text=["Работа <param>", "работа <param>"])
+@bot.on.message(text=["Работа <param> устроиться <param2>", "работа <param> устроиться <param2>"])
+@bot.on.message(payload={"cmd": "cmd_work"})
+async def work_handler(message: Message, info: UsersUserXtrCounters, param: Optional[str] = None,
+                       param2: Optional[str] = None):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        user = UserAction.get_user(message.from_id)
+        if param is None:
+            await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
+                                 f"Вы можете устроиться в одну из организаций:\n"
+                                 f"🔹 1. ЖКХ\n"
+                                 f"🔎 Для просмотра вакансий используйте \"работа [организация]\"")
+        elif param == '1':
+            if param2 is None:
+                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
+                                     f"Доступные вакансии в ЖКХ:\n"
+                                     f"🔹 1. Дворник [до 4.500$]\n"
+                                     f"🔹 2. Электрик [до 7.000$]\n"
+                                     f"🔎 Чтобы устроиться используйте \"работа [организация] устроиться [вакансия]\"")
+            elif param2 == '1':
+                user[0]["Work"] = 1
+                UserAction.save_user(message.from_id, user)
+                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы устроились в ЖКХ дворником\n"
+                                     f"Используйте \"Работать\", чтобы работать")
+            elif param2 == '2':
+                user[0]["Work"] = 2
+                UserAction.save_user(message.from_id, user)
+                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы устроились в ЖКХ электриком\n"
+                                     f"Используйте \"Работать\", чтобы работать")
+
+
 # Top command
 @bot.on.message(text=["Топ", "топ"])
 @bot.on.message(payload={"cmd": "cmd_top"})
@@ -2889,15 +3122,26 @@ async def clan_handler(message: Message, info: UsersUserXtrCounters, action: Opt
                         await message.answer(
                             f"@id{message.from_id} ({user[0]['Name']}), у Вас недостаточно денег для создания клана")
                     else:
-                        user[0]["Money"] -= MainData.get_settings()[0]["ClanPrice"]
-                        MainData.add_clan(Name=param, OwnerID=user[0]["ID"])
-                        user_clan = MainData.get_clan_userid(user[0]["ID"])
-                        user[0]["ClanID"] = user_clan[0]["ID"]
-                        user[0]["ClanRank"] = 5
-                        UserAction.save_user(message.from_id, user)
-                        await message.answer(f"@id{message.from_id} ({user[0]['Name']}), поздравляем 🎉\n"
-                                             f"Теперь у Вас есть свой клан {param}\n"
-                                             f"Чтобы узнать доступные команды, используйте: клан помощь")
+                        if param2 is None:
+                            user[0]["Money"] -= MainData.get_settings()[0]["ClanPrice"]
+                            MainData.add_clan(Name=param, OwnerID=user[0]["ID"])
+                            user_clan = MainData.get_clan_userid(user[0]["ID"])
+                            user[0]["ClanID"] = user_clan[0]["ID"]
+                            user[0]["ClanRank"] = 5
+                            UserAction.save_user(message.from_id, user)
+                            await message.answer(f"@id{message.from_id} ({user[0]['Name']}), поздравляем 🎉\n"
+                                                 f"Теперь у Вас есть свой клан {param}\n"
+                                                 f"Чтобы узнать доступные команды, используйте: клан помощь")
+                        else:
+                            user[0]["Money"] -= MainData.get_settings()[0]["ClanPrice"]
+                            MainData.add_clan(Name=param+' '+param2, OwnerID=user[0]["ID"])
+                            user_clan = MainData.get_clan_userid(user[0]["ID"])
+                            user[0]["ClanID"] = user_clan[0]["ID"]
+                            user[0]["ClanRank"] = 5
+                            UserAction.save_user(message.from_id, user)
+                            await message.answer(f"@id{message.from_id} ({user[0]['Name']}), поздравляем 🎉\n"
+                                                 f"Теперь у Вас есть свой клан {param+' '+param2}\n"
+                                                 f"Чтобы узнать доступные команды, используйте: клан помощь")
         elif action.lower() == 'распустить':
             if user[0]["ClanID"] == 0:
                 await message.answer(f"@id{message.from_id} ({user[0]['Name']}), у Вас нет клана")
@@ -3049,25 +3293,29 @@ async def clan_handler(message: Message, info: UsersUserXtrCounters, action: Opt
             else:
                 if param is None or param2 is None:
                     temp_text = ''
-                    payers = clan[0]["MoneyRefill"].split(',')[:-1]
-                    for payer in payers:
-                        payer_user = UserAction.get_user_by_gameid(payer.split("-")[0])
-                        if payer_user[0]["ClanRank"] == 5:
-                            temp_text += f'\n🎖 @id{payer_user[0]["VK_ID"]} ' \
-                                         f'({payer_user[0]["Name"]}) ' \
-                                         f'({payer.split("-")[0]}) пополнил на {general.change_number(int(payer.split("-")[1]))}$'
-                        elif payer_user[0]["ClanRank"] == 4:
-                            temp_text += f'\n👑 @id{payer_user[0]["VK_ID"]} ' \
-                                         f'({payer_user[0]["Name"]}) ' \
-                                         f'({payer.split("-")[0]}) пополнил на {general.change_number(int(payer.split("-")[1]))}$'
-                        else:
-                            temp_text += f'\n🗿 @id{payer_user[0]["VK_ID"]} ' \
-                                         f'({payer_user[0]["Name"]}) ' \
-                                         f'({payer.split("-")[0]}) пополнил на {general.change_number(int(payer.split("-")[1]))}$'
-
-                    await message.answer(
-                        f"@id{message.from_id} ({user[0]['Name']}), последние 7 пополнений казны: {temp_text}\n\n"
-                        f"🔎 Чтобы пополнить/снять, используйте \"клан казна пополнить/снять [сумма]\"")
+                    payers = 0 if clan[0]["MoneyRefill"] == '0-0' else clan[0]["MoneyRefill"].split(',')[:-1]
+                    if payers == 0:
+                        await message.answer(
+                            f"@id{message.from_id} ({user[0]['Name']}), казну еще никто не пополнял...\n\n"
+                            f"🔎 Чтобы пополнить/снять, используйте \"клан казна пополнить/снять [сумма]\"")
+                    else:
+                        for payer in payers:
+                            payer_user = UserAction.get_user_by_gameid(payer.split("-")[0])
+                            if payer_user[0]["ClanRank"] == 5:
+                                temp_text += f'\n🎖 @id{payer_user[0]["VK_ID"]} ' \
+                                             f'({payer_user[0]["Name"]}) ' \
+                                             f'({payer.split("-")[0]}) пополнил на {general.change_number(int(payer.split("-")[1]))}$'
+                            elif payer_user[0]["ClanRank"] == 4:
+                                temp_text += f'\n👑 @id{payer_user[0]["VK_ID"]} ' \
+                                             f'({payer_user[0]["Name"]}) ' \
+                                             f'({payer.split("-")[0]}) пополнил на {general.change_number(int(payer.split("-")[1]))}$'
+                            else:
+                                temp_text += f'\n🗿 @id{payer_user[0]["VK_ID"]} ' \
+                                             f'({payer_user[0]["Name"]}) ' \
+                                             f'({payer.split("-")[0]}) пополнил на {general.change_number(int(payer.split("-")[1]))}$'
+                        await message.answer(
+                            f"@id{message.from_id} ({user[0]['Name']}), последние 7 пополнений казны: {temp_text}\n\n"
+                            f"🔎 Чтобы пополнить/снять, используйте \"клан казна пополнить/снять [сумма]\"")
                 elif param.lower() == 'пополнить':
                     if not general.isint(param2):
                         await message.answer(f"@id{message.from_id} ({user[0]['Name']}), сумма должна быть числом")
@@ -3076,8 +3324,12 @@ async def clan_handler(message: Message, info: UsersUserXtrCounters, action: Opt
                     else:
                         user[0]["Money"] -= int(param2)
                         clan[0]["Money"] += int(param2)
-                        clan[0]["MoneyRefill"] = clan[0]["MoneyRefill"] + f'{user[0]["ID"]}-{param2},' if len(
-                            clan[0]["MoneyRefill"].split(',')[:-1]) < 7 else f'{user[0]["ID"]}-{param2},'
+                        if clan[0]["MoneyRefill"] == '0-0':
+                            clan[0]["MoneyRefill"] = f'{user[0]["ID"]}-{param2},' if len(
+                                clan[0]["MoneyRefill"].split(',')[:-1]) < 7 else f'{user[0]["ID"]}-{param2},'
+                        else:
+                            clan[0]["MoneyRefill"] = clan[0]["MoneyRefill"] + f'{user[0]["ID"]}-{param2},' if len(
+                                clan[0]["MoneyRefill"].split(',')[:-1]) < 7 else f'{user[0]["ID"]}-{param2},'
                         UserAction.save_user(message.from_id, user)
                         MainData.save_clan(clan[0]["ID"], clan)
                         await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
@@ -3115,10 +3367,16 @@ async def clan_handler(message: Message, info: UsersUserXtrCounters, action: Opt
                     await message.answer(f"@id{message.from_id} ({user[0]['Name']}), чтобы изменить название, "
                                          f"используйте: клан изменить [название]")
                 else:
-                    clan[0]["Name"] = param
-                    MainData.save_clan(clan[0]["ID"], clan)
-                    await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
-                                         f"Вы изменили название клана на {param}")
+                    if param2 is None:
+                        clan[0]["Name"] = param
+                        MainData.save_clan(clan[0]["ID"], clan)
+                        await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
+                                             f"Вы изменили название клана на {param}")
+                    else:
+                        clan[0]["Name"] = param + ' ' + param2
+                        MainData.save_clan(clan[0]["ID"], clan)
+                        await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
+                                             f"Вы изменили название клана на {param + ' ' + param2}")
         elif action.lower() == 'состав':
             if user[0]["ClanID"] == 0:
                 await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы не состоите в клане")
@@ -3297,12 +3555,18 @@ async def clan_handler(message: Message, info: UsersUserXtrCounters, action: Opt
                     await message.answer(f"@id{message.from_id} ({user[0]['Name']}), чтобы изменить название ранга, "
                                          f"используйте: клан ризменить [ранг(1-5)] [название]")
                 else:
-                    ranks = {rank.split("-")[0]: rank.split("-")[1] for rank in clan[0]["Ranks"].split(',')[:-1]}
-                    await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
-                                         f"Вы изменили название ранга {param} ({ranks[param]}) на {param2}")
-                    ranks[param] = param2
-                    clan[0]["Ranks"] = ','.join(map(lambda rank: f'{rank[0]}-{rank[1]}', ranks.items()))+','
-                    MainData.save_clan(clan[0]["ID"], clan)
+                    if ',' in param2 or '-' in param2:
+                        await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
+                                             f"название ранга не должно сдержать \"-\" и \",\"\n\n"
+                                             f"Чтобы изменить название ранга, "
+                                             f"используйте: клан ризменить [ранг(1-5)] [название]")
+                    else:
+                        ranks = {rank.split("-")[0]: rank.split("-")[1] for rank in clan[0]["Ranks"].split(',')[:-1]}
+                        await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
+                                             f"Вы изменили название ранга {param} ({ranks[param]}) на {param2}")
+                        ranks[param] = param2
+                        clan[0]["Ranks"] = ','.join(map(lambda rank: f'{rank[0]}-{rank[1]}', ranks.items()))+','
+                        MainData.save_clan(clan[0]["ID"], clan)
         else:
             await message.answer(f"@id{message.from_id} ({user[0]['Name']}), проверьте правильность введенных данных!")
 
@@ -3992,6 +4256,71 @@ async def admin_report_handler(message: Message, action: Optional[str] = None,
             else:
                 await message.answer(
                     f'@id{message.from_id} ({user[0]["Name"]}), проверьте правильность введенных данных!')
+
+
+@bot.on.message(text=["Рассылка", "рассылка"])
+@bot.on.message(text=["Рассылка <send_type>", "рассылка <send_type>"])
+@bot.on.message(text=["Рассылка <send_type> <text>", "рассылка <send_type> <text>"])
+@bot.on.message(text=["Рассылка <send_type> <wall> <text>", "рассылка <send_type> <wall> <text>"])
+async def admin_mailing_handler(message: Message, info: UsersUserXtrCounters,
+                                send_type: Optional[str] = None, text: Optional[str] = None,
+                                wall: Optional[str] = None):
+    user = UserAction.get_user(message.from_id)
+    if user[0]["RankLevel"] < 5:
+        return True
+    else:
+        users = UserAction.get_users_with_notifications()
+        users_id = []
+        users_id.extend(map(lambda x: x["VK_ID"], UserAction.get_users_with_notifications()))
+        users_count = 0
+        if send_type is None or text is None:
+            await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), '
+                                 f'используйте: рассылка [тип(сообщения/поста)] [текст]')
+        elif send_type == 'сообщения':
+            if users is False:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), некому рассылать сообщения')
+            else:
+                if wall is None:
+                    for chunk in general.chunks(users_id):
+                        await bot.api.messages.send(peer_ids=','.join([str(i) for i in chunk]),
+                                                    message=f'📢 {text}\n\n'
+                                                            f'❗ Это автоматическая рассылка\n'
+                                                            f'🔕 Чтобы отключить уведомления, используйте "Настройки"',
+                                                    random_id=message.id)
+                        users_count += 1
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), '
+                                         f'сообщение с текстом {text} успешно разослано '
+                                         f'{users_count} пользователю(-ям)"')
+                else:
+                    for chunk in general.chunks(users_id):
+                        await bot.api.messages.send(peer_ids=','.join([str(i) for i in chunk]),
+                                                    message=f'📢 {wall + " " + text}\n\n'
+                                                            f'❗ Это автоматическая рассылка\n'
+                                                            f'🔕 Чтобы отключить уведомления, используйте "Настройки"',
+                                                    random_id=message.id)
+                        users_count += 1
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), '
+                                         f'сообщение с текстом \n\n{wall + " " + text}\n\n успешно разослано '
+                                         f'{users_count} пользователю(-ям)"')
+        elif send_type == 'поста':
+            if users is False:
+                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), некому рассылать пост')
+            else:
+                if 'wall-' not in wall:
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), для рассылки поста, используйте: '
+                                         f'рассылка поста [пост(wall-000000000_00)] [текст]\n'
+                                         f'Пост обязатно должен быть указан так "wall-000000000_00"')
+                else:
+                    for chunk in general.chunks(users_id):
+                        await bot.api.messages.send(peer_ids=','.join([str(i) for i in chunk]),
+                                                    message=f'📢 {text}\n\n'
+                                                            f'❗ Это автоматическая рассылка\n'
+                                                            f'🔕 Чтобы отключить уведомления, используйте "Настройки"',
+                                                    random_id=message.id, attachment=wall)
+                        users_count += 1
+                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), '
+                                         f'пост vk.com/{wall} с текстом \n\n{text}\n\n успешно разослан '
+                                         f'{users_count} пользователю(-ям)"')
 
 
 # RP Commands
