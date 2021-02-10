@@ -4220,7 +4220,7 @@ async def admin_add_property_handler(message: Message, info: UsersUserXtrCounter
 
 @bot.on.message(text=["Репорты", "репорты"])
 @bot.on.message(text=["Репорты <action> <report_id> <answer>", "репорты <action> <report_id> <answer>"])
-async def admin_report_handler(message: Message, action: Optional[str] = None,
+async def admin_report_handler(message: Message, info: UsersUserXtrCounters, action: Optional[str] = None,
                                report_id: Optional[int] = None, answer: Optional[str] = None):
     user = UserAction.get_user(message.from_id)
     if user[0]["RankLevel"] < 4:
