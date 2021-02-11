@@ -70,6 +70,11 @@ class Timers:
             # Energy
             sql = f"UPDATE users SET Energy=Energy+1 WHERE Energy<30"
             cursor.execute(sql)
+
+            # Work cooldown
+            sql = f"UPDATE users SET WorkCooldown=0 WHERE WorkCooldown>7"
+            cursor.execute(sql)
+
             cursor.close()
         # MySQL.connection.commit()
 

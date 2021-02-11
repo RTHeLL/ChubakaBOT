@@ -2988,23 +2988,76 @@ async def work_handler(message: Message, info: UsersUserXtrCounters, param: Opti
                                  f"Вы можете устроиться в одну из организаций:\n"
                                  f"🔹 1. ЖКХ\n"
                                  f"🔎 Для просмотра вакансий используйте \"работа [организация]\"")
+        elif param.lower() == 'уволиться':
+            user[0]["Work"] = 0
+            user[0]["WorkCooldown"] = 0
+            UserAction.save_user(message.from_id, user)
+            await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы уволились с работы\n"
+                                 f"Используйте \"Работа\", чтобы опять устроиться")
         elif param == '1':
-            if param2 is None:
-                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
-                                     f"Доступные вакансии в ЖКХ:\n"
-                                     f"🔹 1. Дворник [до 4.500$]\n"
-                                     f"🔹 2. Электрик [до 7.000$]\n"
-                                     f"🔎 Чтобы устроиться используйте \"работа [организация] устроиться [вакансия]\"")
-            elif param2 == '1':
-                user[0]["Work"] = 1
+            if user[0]["Work"] > 0:
+                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы уже где-то работаете, "
+                                     f"вам необходимо уволиться\n"
+                                     f"Используйте \"Работа уволиться\", чтобы уволиться")
+            else:
+                if param2 is None:
+                    await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
+                                         f"Доступные вакансии в ЖКХ:\n"
+                                         f"🔹 1. Дворник [до 4.500$/нед.]\n"
+                                         f"🔹 2. Электрик [до 7.000$/нед.]\n"
+                                         f"🔎 Чтобы устроиться используйте \"работа [организация] устроиться [вакансия]\"")
+                elif param2 == '1':
+                    user[0]["Work"] = 1
+                    user[0]["WorkCooldown"] = 0
+                    UserAction.save_user(message.from_id, user)
+                    await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы устроились в ЖКХ дворником\n"
+                                         f"Используйте \"Работать\", чтобы работать")
+                elif param2 == '2':
+                    user[0]["Work"] = 2
+                    user[0]["WorkCooldown"] = 0
+                    UserAction.save_user(message.from_id, user)
+                    await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы устроились в ЖКХ электриком\n"
+                                         f"Используйте \"Работать\", чтобы работать")
+
+
+@bot.on.message(text=["Работать", "работать"])
+@bot.on.message(payload={"cmd": "cmd_worked"})
+async def worked_handler(message: Message, info: UsersUserXtrCounters):
+    if not UserAction.get_user(message.from_id):
+        await message.answer(f"Вы не зарегестрированы в боте!\nСейчас будет выполнена автоматическая регистрация...")
+        UserAction.create_user(message.from_id, info.first_name)
+        await message.answer(f"Поздравляем!\nВаш аккаунт успешно создан!\nВаше имя: "
+                             f"{info.first_name}\nВаш игровой ID: {UserAction.get_user(message.from_id)[0]['ID']}")
+    else:
+        user = UserAction.get_user(message.from_id)
+        if user[0]["Work"] == 0:
+            await message.answer(f"@id{message.from_id} ({user[0]['Name']}), вы нигде не работаете!\n"
+                                 f"Ипользуйте \"Работа\", чтобы устроиться на работу")
+        elif user[0]["WorkCooldown"] == 7:
+            await message.answer(f"@id{message.from_id} ({user[0]['Name']}), рабочая неделя окончена 🚫\n"
+                                 f"Ожидайте час, чтобы опять работать")
+        elif user[0]["Energy"] <= 0:
+            await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы слишком устали 🚫\n"
+                                 f"Ваша энергия: {general.change_number(user[0]['Energy'])}")
+        else:
+            if user[0]["Work"] == 1:
+                earned_money = random.randint(100, 645)
+                user[0]["Money"] += earned_money
+                user[0]["WorkCooldown"] += 1
+                user[0]["Energy"] -= 1
+                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), рабочий день окончен...\n\n"
+                                     f"Ваш сегодняшний доход: {general.change_number(earned_money)}$\n"
+                                     f"Ваш баланс: {general.change_number(user[0]['Money'])}$")
                 UserAction.save_user(message.from_id, user)
-                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы устроились в ЖКХ дворником\n"
-                                     f"Используйте \"Работать\", чтобы работать")
-            elif param2 == '2':
-                user[0]["Work"] = 2
+            if user[0]["Work"] == 2:
+                earned_money = random.randint(250, 1000)
+                user[0]["Money"] += earned_money
+                user[0]["WorkCooldown"] += 1
+                user[0]["Energy"] -= 1
+                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), рабочий день окончен...\n\n"
+                                     f"Ваш сегодняшний доход: {general.change_number(earned_money)}$\n"
+                                     f"Ваш баланс: {general.change_number(user[0]['Money'])}$")
                 UserAction.save_user(message.from_id, user)
-                await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы устроились в ЖКХ электриком\n"
-                                     f"Используйте \"Работать\", чтобы работать")
 
 
 # Top command
