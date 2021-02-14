@@ -96,6 +96,9 @@ class UserAction(MySQL):
             sql = "SELECT * FROM %s WHERE `ID`=%s"
             cursor.execute(sql % (config["USERS_TABLES"]["USERS"], game_id))
             result = cursor.fetchall()
+            sql = "SELECT * FROM %s WHERE `ID`=%s"
+            cursor.execute(sql % (config["USERS_TABLES"]["USERS_PROPERTY"], game_id))
+            result += cursor.fetchall()
             cursor.close()
             if len(result) == 0:
                 return False

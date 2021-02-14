@@ -100,3 +100,17 @@ class Timers:
 
             # Potion timer
             sql = f"UPDATE users SET PotionTime=PotionTime-1 WHERE PotionTime>0"
+            cursor.execute(sql)
+
+            # Ban timer
+            sql = f"UPDATE users SET Ban=Ban-1 WHERE Ban>0"
+            cursor.execute(sql)
+
+            sql = f"UPDATE users SET BanReport=BanReport-1 WHERE BanReport>0"
+            cursor.execute(sql)
+
+            sql = f"UPDATE users SET BanTrade=BanTrade-1 WHERE BanTrade>0"
+            cursor.execute(sql)
+
+            sql = f"UPDATE users SET BanTop=BanTop-1 WHERE BanTop>0"
+            cursor.execute(sql)
