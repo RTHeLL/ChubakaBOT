@@ -132,7 +132,7 @@ class UserAction(MySQL):
     # Function get users for top
     def get_users_top(self):
         with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
-            sql = "SELECT * FROM %s WHERE Rating>0 ORDER BY Rating DESC LIMIT 10"
+            sql = "SELECT * FROM %s WHERE Rating>0 AND BanTop=0 ORDER BY Rating DESC LIMIT 10"
             cursor.execute(sql % config["USERS_TABLES"]["USERS"])
             result = cursor.fetchall()
             cursor.close()
@@ -155,6 +155,17 @@ class UserAction(MySQL):
         with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
             sql = "SELECT * FROM %s WHERE `ClanID`=%s"
             cursor.execute(sql % (config["USERS_TABLES"]["USERS"], clan_id))
+            result = cursor.fetchall()
+            cursor.close()
+            if len(result) == 0:
+                return False
+            else:
+                return result
+
+    # Function get users
+    def custom_query(self, sql):
+        with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute(sql)
             result = cursor.fetchall()
             cursor.close()
             if len(result) == 0:

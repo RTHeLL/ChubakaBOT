@@ -23,3 +23,10 @@ class General:
             stop = start + count
             yield users[start:stop]
             start = stop
+
+    @staticmethod
+    def check_user_ban(user):
+        if user[0]["Ban"] > 0:
+            return True
+        else:
+            return False
