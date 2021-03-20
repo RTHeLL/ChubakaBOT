@@ -1,5 +1,5 @@
 # Folders
-config/
+#config/
 logs/
 classes/__pycache__/
 data/__pycache__/
