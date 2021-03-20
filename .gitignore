@@ -1,12 +1,11 @@
 # Folders
 config/
-config/mysql.ini
-config/vk.ini
 logs/
 classes/__pycache__/
 data/__pycache__/
 .idea/
 images/
+venv/
 
 # Files
 fast_paste_in_base.py
