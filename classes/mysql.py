@@ -38,19 +38,19 @@ class UserAction(MySQL):
             cursor.close()
 
     # Function getting user
-    def get_user(self, vk_id):
-        with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
-            sql = "SELECT * FROM %s WHERE `VK_ID`=%s"
-            cursor.execute(sql % (config["USERS_TABLES"]["USERS"], vk_id))
-            result = cursor.fetchall()
-            sql = "SELECT * FROM %s WHERE `VK_ID`=%s"
-            cursor.execute(sql % (config["USERS_TABLES"]["USERS_PROPERTY"], vk_id))
-            result += cursor.fetchall()
-            cursor.close()
-            if len(result) == 0:
-                return False
-            else:
-                return result
+    # def get_user(self, vk_id):
+    #     with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
+    #         sql = "SELECT * FROM %s WHERE `VK_ID`=%s"
+    #         cursor.execute(sql % (config["USERS_TABLES"]["USERS"], vk_id))
+    #         result = cursor.fetchall()
+    #         sql = "SELECT * FROM %s WHERE `VK_ID`=%s"
+    #         cursor.execute(sql % (config["USERS_TABLES"]["USERS_PROPERTY"], vk_id))
+    #         result += cursor.fetchall()
+    #         cursor.close()
+    #         if len(result) == 0:
+    #             return False
+    #         else:
+    #             return result
 
     # Function updating user
     def save_user(self, vk_id, user):
