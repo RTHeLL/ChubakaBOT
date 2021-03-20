@@ -50,8 +50,8 @@ class Timers:
                 if user["BusinessLevel"] == 0:
                     continue
                 elif user["BusinessLevel"] == 1:
-                    if user["Workers_In_Business"] != MainData.get_data('businesses')[user["Business"] - 1][
-                        "BusinessWorkers"]:
+                    if user["Workers_In_Business"] != \
+                            MainData.get_data('businesses')[user["Business"] - 1]["BusinessWorkers"]:
                         cursor.execute(sql % (
                             math.trunc(MainData.get_data('businesses')[user["Business"] - 1]["MoneyPerHouse"] / 2),
                             user["VK_ID"]))
@@ -59,8 +59,8 @@ class Timers:
                         cursor.execute(sql % (
                             MainData.get_data('businesses')[user["Business"] - 1]["MoneyPerHouse"], user["VK_ID"]))
                 elif user["BusinessLevel"] == 2:
-                    if user["Workers_In_Business"] != MainData.get_data('businesses')[user["Business"] - 1][
-                        "BusinessWorkers"] * 2:
+                    if user["Workers_In_Business"] != \
+                            MainData.get_data('businesses')[user["Business"] - 1]["BusinessWorkers"] * 2:
                         cursor.execute(sql % (
                             MainData.get_data('businesses')[user["Business"] - 1]["MoneyPerHouse"], user["VK_ID"]))
                     else:

@@ -532,14 +532,16 @@ async def profile_handler(message: Message, info: UsersUserXtrCounters):
             if user[0]["Rating"] > 0:
                 temp_message += f'👑 Рейтинг: {general.change_number(user[0]["Rating"])}\n'
             if user[0]["Marriage_Partner"] > 0:
-                temp_message += f'💖 Партнер: @id{UserAction.get_user_by_gameid(user[0]["Marriage_Partner"])[0]["VK_ID"]}' \
+                temp_message += f'💖 Партнер: ' \
+                                f'@id{UserAction.get_user_by_gameid(user[0]["Marriage_Partner"])[0]["VK_ID"]}' \
                                 f' ({UserAction.get_user_by_gameid(user[0]["Marriage_Partner"])[0]["Name"]})\n'
             # Property
             temp_message += f'\n🔑 Имущество:\n'
             if user[1]["Car"] > 0:
                 temp_message += f'⠀🚗 Машина: {MainData.get_data("cars")[user[1]["Car"] - 1]["CarName"]}\n'
             if user[1]["Motorcycle"] > 0:
-                temp_message += f'⠀🏍 Мотоцикл: {MainData.get_data("motorcycles")[user[1]["Motorcycle"] - 1]["MotoName"]}\n'
+                temp_message += f'⠀🏍 Мотоцикл: ' \
+                                f'{MainData.get_data("motorcycles")[user[1]["Motorcycle"] - 1]["MotoName"]}\n'
             if user[1]["Yacht"] > 0:
                 temp_message += f'⠀🛥 Яхта: {MainData.get_data("yachts")[user[1]["Yacht"] - 1]["YachtName"]}\n'
             if user[1]["Airplane"] > 0:
@@ -570,13 +572,16 @@ async def profile_handler(message: Message, info: UsersUserXtrCounters):
                 temp_message += f'\n🍹 Эффект от зелья:\n'
                 if user[0]["Potion"] == 1:
                     temp_message += f'⠀🍀 Зелье удачи\n'
-                    temp_message += f'⠀🕛 Время действия: {time.strftime("%M мин.", time.gmtime(user[0]["PotionTime"] * 60))}\n'
+                    temp_message += f'⠀🕛 Время действия: ' \
+                                    f'{time.strftime("%M мин.", time.gmtime(user[0]["PotionTime"] * 60))}\n'
                 elif user[0]["Potion"] == 2:
                     temp_message += f'⠀⚒ Зелье шахтера\n'
-                    temp_message += f'⠀🕛 Время действия: {time.strftime("%M мин.", time.gmtime(user[0]["PotionTime"] * 60))}\n'
+                    temp_message += f'⠀🕛 Время действия: ' \
+                                    f'{time.strftime("%M мин.", time.gmtime(user[0]["PotionTime"] * 60))}\n'
                 elif user[0]["Potion"] == 3:
                     temp_message += f'⠀❌ Зелье неудачи\n'
-                    temp_message += f'⠀🕛 Время действия: {time.strftime("%M мин.", time.gmtime(user[0]["PotionTime"] * 60))}\n'
+                    temp_message += f'⠀🕛 Время действия: ' \
+                                    f'{time.strftime("%M мин.", time.gmtime(user[0]["PotionTime"] * 60))}\n'
 
             # Mined resource
             if user[0]["Iron"] > 0 or user[0]["Gold"] > 0 or user[0]["Diamond"] > 0 or user[0]["Matter"] > 0:
@@ -610,7 +615,8 @@ async def bank_handler(message: Message, info: UsersUserXtrCounters, item1: Opti
         user = UserAction.get_user(message.from_id)
         if item1 is None and item2 is None:
             await message.answer(
-                f'@id{message.from_id} ({user[0]["Name"]}), на Вашем банковском счете: {general.change_number(user[0]["Bank_Money"])}$')
+                f'@id{message.from_id} ({user[0]["Name"]}), на Вашем банковском счете: '
+                f'{general.change_number(user[0]["Bank_Money"])}$')
         elif item1 == "положить":
             if item2 is None or not general.isint(item2):
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), используйте "банк положить [сумма], '
@@ -681,7 +687,8 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
                                      f'⠀🔋 Фермы\n'
                                      f'⠀👑 Рейтинг [кол-во]⠀⠀{general.change_number(1000000)}$/ед.\n'
                                      f'⠀💼 Бизнесы\n'
-                                     f'⠀🌐 Биткоин [кол-во]⠀⠀{general.change_number(MainData.get_settings()[0]["BTC_USD_Curse"])}$/ед.\n'
+                                     f'⠀🌐 Биткоин [кол-во]⠀⠀'
+                                     f'{general.change_number(MainData.get_settings()[0]["BTC_USD_Curse"])}$/ед.\n'
                                      f'⠀🐸 Питомцы\n'
                                      f'⠀📦 Кейсы\n'
                                      f'⠀🍹 Зелья'
@@ -740,7 +747,8 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
                                      f'⠀🔋 Фермы\n'
                                      f'⠀👑 Рейтинг [кол-во]⠀⠀{general.change_number(1000000)}$/ед.\n'
                                      f'⠀💼 Бизнесы\n'
-                                     f'⠀🌐 Биткоин [кол-во]⠀⠀{general.change_number(MainData.get_settings()[0]["BTC_USD_Curse"])}$/ед.\n'
+                                     f'⠀🌐 Биткоин [кол-во]⠀⠀'
+                                     f'{general.change_number(MainData.get_settings()[0]["BTC_USD_Curse"])}$/ед.\n'
                                      f'⠀🐸 Питомцы\n'
                                      f'⠀📦 Кейсы\n'
                                      f'⠀🍹 Зелья'
@@ -965,7 +973,7 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
                         await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вы приобрели себе '
                                              f'{general.change_number(count)} ферм(ы) '
                                              f'{shop_data[7][int(product) - 1]["FarmName"]} за '
-                                             f'{general.change_number(shop_data[7][int(product) - 1]["Price"] * count)}$')
+                                             f'{general.change_number(shop_data[7][int(product) - 1]["Price"]*count)}$')
         elif category.lower() == 'рейтинг':
             if product is None:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), ❓ Для покупки введите "магазин рейтинг'
@@ -1040,7 +1048,8 @@ async def shop_handler(message: Message, info: UsersUserXtrCounters, category: O
         elif category.lower() == 'мотоциклы':
             if product is None:
                 for motorcycle in shop_data_sorted[10]:
-                    temp_text += f'\n🔸 {motorcycle["ID"]}. {motorcycle["MotoName"]} [{general.change_number(motorcycle["Price"])}$]'
+                    temp_text += f'\n🔸 {motorcycle["ID"]}. {motorcycle["MotoName"]} ' \
+                                 f'[{general.change_number(motorcycle["Price"])}$]'
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), мотоциклы: {temp_text}\n\n '
                                      f'❓ Для покупки введите "магазин мотоциклы купить [номер]"')
             else:
@@ -1261,7 +1270,8 @@ async def shop_products_handler(message: Message, info: UsersUserXtrCounters):
                                  f'❓ Для покупки введите "магазин питомцы купить [номер]"')
         if products_category == 'transport_motorcycles':
             for motorcycle in shop_data_sorted[10]:
-                temp_text += f'\n🔸 {motorcycle["ID"]}. {motorcycle["MotoName"]} [{general.change_number(motorcycle["Price"])}$]'
+                temp_text += f'\n🔸 {motorcycle["ID"]}. {motorcycle["MotoName"]} ' \
+                             f'[{general.change_number(motorcycle["Price"])}$]'
             await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), мотоциклы: {temp_text}\n\n '
                                  f'❓ Для покупки введите "магазин мотоциклы купить [номер]"')
         if products_category == 'other_cases':
@@ -1379,7 +1389,7 @@ async def transfer_handler(message: Message, info: UsersUserXtrCounters, gameid:
         user = UserAction.get_user(message.from_id)
         if user[0]["BanTrade"] > 0:
             await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), Вам запрещено писать в репорт!\n'
-                                 f'Ожидайте: {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["BanTrade"] * 60)) if user[0]["BanTrade"] > 60 else time.strftime("%M мин.", time.gmtime(user[0]["BanTrade"]  * 60))}')
+                                 f'Ожидайте: {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["BanTrade"] * 60)) if user[0]["BanTrade"] > 60 else time.strftime("%M мин.", time.gmtime(user[0]["BanTrade"] * 60))}')
         else:
             if gameid is None or money is None:
                 await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), используйте "передать [игровой ID] '
@@ -1388,7 +1398,8 @@ async def transfer_handler(message: Message, info: UsersUserXtrCounters, gameid:
                 if user[0]["Money"] < money:
                     await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), у Вас нет столько денег!')
                 elif not UserAction.get_user_by_gameid(gameid):
-                    await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), такого пользователя не существует!')
+                    await message.answer(
+                        f'@id{message.from_id} ({user[0]["Name"]}), такого пользователя не существует!')
                 elif gameid == user[0]["ID"]:
                     await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), '
                                          f'нельзя передать деньги самому себе!')
@@ -1985,8 +1996,9 @@ async def report_handler(message: Message, info: UsersUserXtrCounters, question:
                                  f'Ожидайте: {time.strftime("%H ч. %M мин.", time.gmtime(user[0]["BanReport"] * 60)) if user[0]["BanReport"] > 60 else time.strftime("%M мин.", time.gmtime(user[0]["BanReport"] * 60))}')
         else:
             if question is None:
-                await message.answer(f'@id{message.from_id} ({user[0]["Name"]}), чтобы задать вопрос, используйте: репорт '
-                                     f'[вопрос]')
+                await message.answer(
+                    f'@id{message.from_id} ({user[0]["Name"]}), чтобы задать вопрос, используйте: репорт '
+                    f'[вопрос]')
             else:
                 MainData.add_and_update_report(Question=question, AskingID=user[0]["ID"])
                 for admin in UserAction.get_admins():
@@ -2796,7 +2808,8 @@ async def game_cube_handler(message: Message, info: UsersUserXtrCounters):
         chats = {ID["ChatID"] for ID in MainData.get_chats()}
         if message.chat_id in chats:
             await message.answer(
-                f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), Вы начали игру в \"Монетка\" 👍\n"
+                f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), "
+                f"Вы начали игру в \"Монетка\" 👍\n"
                 f"🦅 Для игры в кубик выбирайте \"Орел\" или \"Решка\"\n",
                 keyboard=Keyboard(one_time=False, inline=True).schema(
                     [
@@ -2813,7 +2826,8 @@ async def game_cube_handler(message: Message, info: UsersUserXtrCounters):
                 ).get_json())
         else:
             await message.answer(
-                f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), Вы начали игру в \"Монетка\" 👍\n"
+                f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), "
+                f"Вы начали игру в \"Монетка\" 👍\n"
                 f"🦅 Для игры в кубик выбирайте \"Орел\" или \"Решка\"\n", keyboard=GAME_COIN_KEYBOARD)
 
 
@@ -3523,17 +3537,23 @@ async def clan_handler(message: Message, info: UsersUserXtrCounters, action: Opt
                 ranks = {rank.split("-")[0]: rank.split("-")[1] for rank in clan[0]["Ranks"].split(',')[:-1]}
                 for clan_user in clan_users:
                     if clan_user["ClanRank"] == 5:
-                        temp_text += f'\n👑 @id{clan_user["VK_ID"]} ({clan_user["Name"]}) ({clan_user["ID"]}) - {ranks["5"]}'
+                        temp_text += f'\n👑 @id{clan_user["VK_ID"]} ({clan_user["Name"]}) ({clan_user["ID"]}) - ' \
+                                     f'{ranks["5"]}'
                     elif clan_user["ClanRank"] == 4:
-                        temp_text += f'\n🎖 @id{clan_user["VK_ID"]} ({clan_user["Name"]}) ({clan_user["ID"]}) - {ranks["4"]}'
+                        temp_text += f'\n🎖 @id{clan_user["VK_ID"]} ({clan_user["Name"]}) ({clan_user["ID"]}) - ' \
+                                     f'{ranks["4"]}'
                     elif clan_user["ClanRank"] == 3:
-                        temp_text += f'\n🥇 @id{clan_user["VK_ID"]} ({clan_user["Name"]}) ({clan_user["ID"]}) - {ranks["3"]}'
+                        temp_text += f'\n🥇 @id{clan_user["VK_ID"]} ({clan_user["Name"]}) ({clan_user["ID"]}) - ' \
+                                     f'{ranks["3"]}'
                     elif clan_user["ClanRank"] == 2:
-                        temp_text += f'\n🥈 @id{clan_user["VK_ID"]} ({clan_user["Name"]}) ({clan_user["ID"]}) - {ranks["2"]}'
+                        temp_text += f'\n🥈 @id{clan_user["VK_ID"]} ({clan_user["Name"]}) ({clan_user["ID"]}) - ' \
+                                     f'{ranks["2"]}'
                     else:
-                        temp_text += f'\n🗿 @id{clan_user["VK_ID"]} ({clan_user["Name"]}) ({clan_user["ID"]}) - {ranks["1"]}'
+                        temp_text += f'\n🗿 @id{clan_user["VK_ID"]} ({clan_user["Name"]}) ({clan_user["ID"]}) - ' \
+                                     f'{ranks["1"]}'
                 await message.answer(
-                    f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), состав клана {clan[0]['Name']}: {temp_text}")
+                    f"@id{message.from_id} ({UserAction.get_user(message.from_id)[0]['Name']}), "
+                    f"состав клана {clan[0]['Name']}: {temp_text}")
         elif action.lower() == 'ранг':
             if user[0]["ClanID"] == 0:
                 await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы не состоите в клане")
@@ -3578,7 +3598,8 @@ async def clan_handler(message: Message, info: UsersUserXtrCounters, action: Opt
                 await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы не состоите в клане")
             elif user[0]["ClanRank"] < 2:
                 await message.answer(
-                    f"@id{message.from_id} ({user[0]['Name']}), у Вас недостаточно прав, чтобы использовать магазин для этого клана")
+                    f"@id{message.from_id} ({user[0]['Name']}), "
+                    f"у Вас недостаточно прав, чтобы использовать магазин для этого клана")
             else:
                 if param is None or param2 is None:
                     if param == '3':
@@ -3676,17 +3697,20 @@ async def clan_handler(message: Message, info: UsersUserXtrCounters, action: Opt
                             MainData.save_clan(clan[0]["ID"], clan)
                             MainData.save_clan(clan_for_attack[0]["ID"], clan_for_attack)
                             await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
-                                                 f"ваш клан одержал победу перед «{clan_for_attack[0]['Name']}», украдено: {general.change_number(take_money)}$. ✅")
+                                                 f"ваш клан одержал победу перед «{clan_for_attack[0]['Name']}», "
+                                                 f"украдено: {general.change_number(take_money)}$. ✅")
                         else:
                             await message.answer(
-                                f"@id{message.from_id} ({user[0]['Name']}), у Вас слишком мало войска, чтобы драться с этим кланом\n"
+                                f"@id{message.from_id} ({user[0]['Name']}), "
+                                f"у Вас слишком мало войска, чтобы драться с этим кланом\n"
                                 f"Используйте \"клан магазин\", чтобы приобрести войско")
         elif action.lower() == 'ризменить':
             if user[0]["ClanID"] == 0:
                 await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы не состоите в клане")
             elif user[0]["ClanRank"] < 5:
                 await message.answer(
-                    f"@id{message.from_id} ({user[0]['Name']}), у Вас недостаточно прав, чтобы изменять название рангов клана")
+                    f"@id{message.from_id} ({user[0]['Name']}), "
+                    f"у Вас недостаточно прав, чтобы изменять название рангов клана")
             else:
                 if param is None or param2 is None:
                     await message.answer(f"@id{message.from_id} ({user[0]['Name']}), чтобы изменить название ранга, "
@@ -3854,7 +3878,8 @@ async def mining_handler(message: Message, info: UsersUserXtrCounters, param: Op
                 elif param == 'золото':
                     if user[0]["EXP"] < 1000:
                         await message.answer(
-                            f'@id{message.from_id} ({user[0]["Name"]}), чтобы добывать золото Вам необходимо иметь 1000+ опыта 🚫\n'
+                            f'@id{message.from_id} ({user[0]["Name"]}), '
+                            f'чтобы добывать золото Вам необходимо иметь 1000+ опыта 🚫\n'
                             f'У Вас {user[0]["EXP"]} ⭐')
                     else:
                         user[0]["Gold"] += total_mined
@@ -3869,7 +3894,8 @@ async def mining_handler(message: Message, info: UsersUserXtrCounters, param: Op
                 elif param == 'алмазы':
                     if user[0]["EXP"] < 2500:
                         await message.answer(
-                            f'@id{message.from_id} ({user[0]["Name"]}), чтобы добывать алмазы Вам необходимо иметь 2500+ опыта 🚫\n'
+                            f'@id{message.from_id} ({user[0]["Name"]}), '
+                            f'чтобы добывать алмазы Вам необходимо иметь 2500+ опыта 🚫\n'
                             f'У Вас {user[0]["EXP"]} ⭐')
                     else:
                         user[0]["Diamond"] += total_mined
@@ -3884,7 +3910,8 @@ async def mining_handler(message: Message, info: UsersUserXtrCounters, param: Op
                 elif param == 'материю':
                     if user[0]["EXP"] < 5000 and user[0]["RankLevel"] < 3:
                         await message.answer(
-                            f'@id{message.from_id} ({user[0]["Name"]}), чтобы добывать материю Вам необходимо иметь 5000+ опыта 🚫\n'
+                            f'@id{message.from_id} ({user[0]["Name"]}), '
+                            f'чтобы добывать материю Вам необходимо иметь 5000+ опыта 🚫\n'
                             f'У Вас {user[0]["EXP"]} ⭐\n\n'
                             f'Вы так же можете приобресети Premium статус, чтобы добывать данный ресурс.\n'
                             f'Испоьзуйте: донат')
@@ -4234,10 +4261,11 @@ async def getbaninfo_handler(message: Message, info: UsersUserXtrCounters, user_
                 temp_text += f'\nБан трейда: {time.strftime("%H ч. %M мин.", time.gmtime(info_user[0]["BanTrade"] * 60)) if info_user[0]["BanTrade"] >= 60 else time.strftime("%M мин.", time.gmtime(info_user[0]["BanTrade"] * 60))}'
             if info_user[0]["BanTop"] > 0:
                 temp_text += f'\nБан топа: {time.strftime("%H ч. %M мин.", time.gmtime(info_user[0]["BanTop"] * 60)) if info_user[0]["BanTop"] >= 60 else time.strftime("%M мин.", time.gmtime(info_user[0]["BanTop"] * 60))}'
-            if info_user[0]["Ban"] > 0 or info_user[0]["BanReport"] > 0 or info_user[0]["BanTrade"] > 0 or info_user[0][
-                "BanTop"] > 0:
+            if info_user[0]["Ban"] > 0 or info_user[0]["BanReport"] > 0 or \
+                    info_user[0]["BanTrade"] > 0 or info_user[0]["BanTop"] > 0:
                 await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
-                                     f"информация о банах игрока @id{info_user[0]['VK_ID']} ({info_user[0]['Name']}):\n\n"
+                                     f"информация о банах игрока "
+                                     f"@id{info_user[0]['VK_ID']} ({info_user[0]['Name']}):\n\n"
                                      f"{temp_text}")
             else:
                 await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
@@ -4284,14 +4312,16 @@ async def get_handler(message: Message, info: UsersUserXtrCounters, user_id: Opt
             if info_user[0]["Rating"] > 0:
                 temp_text += f'👑 Рейтинг: {general.change_number(info_user[0]["Rating"])}\n'
             if info_user[0]["Marriage_Partner"] > 0:
-                temp_text += f'💖 Партнер: @id{UserAction.get_user_by_gameid(info_user[0]["Marriage_Partner"])[0]["VK_ID"]}' \
+                temp_text += f'💖 Партнер: ' \
+                             f'@id{UserAction.get_user_by_gameid(info_user[0]["Marriage_Partner"])[0]["VK_ID"]}' \
                              f' ({UserAction.get_user_by_gameid(info_user[0]["Marriage_Partner"])[0]["Name"]})\n'
             # Property
             temp_text += f'\n🔑 Имущество:\n'
             if info_user[1]["Car"] > 0:
                 temp_text += f'⠀🚗 Машина: {MainData.get_data("cars")[info_user[1]["Car"] - 1]["CarName"]}\n'
             if info_user[1]["Motorcycle"] > 0:
-                temp_text += f'⠀🏍 Мотоцикл: {MainData.get_data("motorcycles")[info_user[1]["Motorcycle"] - 1]["MotoName"]}\n'
+                temp_text += f'⠀🏍 Мотоцикл: ' \
+                             f'{MainData.get_data("motorcycles")[info_user[1]["Motorcycle"] - 1]["MotoName"]}\n'
             if info_user[1]["Yacht"] > 0:
                 temp_text += f'⠀🛥 Яхта: {MainData.get_data("yachts")[info_user[1]["Yacht"] - 1]["YachtName"]}\n'
             if info_user[1]["Airplane"] > 0:
@@ -4322,17 +4352,20 @@ async def get_handler(message: Message, info: UsersUserXtrCounters, user_id: Opt
                 temp_text += f'\n🍹 Эффект от зелья:\n'
                 if info_user[0]["Potion"] == 1:
                     temp_text += f'⠀🍀 Зелье удачи\n'
-                    temp_text += f'⠀🕛 Время действия: {time.strftime("%M мин.", time.gmtime(info_user[0]["PotionTime"] * 60))}\n'
+                    temp_text += f'⠀🕛 Время действия: ' \
+                                 f'{time.strftime("%M мин.", time.gmtime(info_user[0]["PotionTime"] * 60))}\n'
                 elif info_user[0]["Potion"] == 2:
                     temp_text += f'⠀⚒ Зелье шахтера\n'
-                    temp_text += f'⠀🕛 Время действия: {time.strftime("%M мин.", time.gmtime(info_user[0]["PotionTime"] * 60))}\n'
+                    temp_text += f'⠀🕛 Время действия: ' \
+                                 f'{time.strftime("%M мин.", time.gmtime(info_user[0]["PotionTime"] * 60))}\n'
                 elif info_user[0]["Potion"] == 3:
                     temp_text += f'⠀❌ Зелье неудачи\n'
-                    temp_text += f'⠀🕛 Время действия: {time.strftime("%M мин.", time.gmtime(info_user[0]["PotionTime"] * 60))}\n'
+                    temp_text += f'⠀🕛 Время действия: ' \
+                                 f'{time.strftime("%M мин.", time.gmtime(info_user[0]["PotionTime"] * 60))}\n'
 
             # Mined resource
-            if info_user[0]["Iron"] > 0 or info_user[0]["Gold"] > 0 or info_user[0]["Diamond"] > 0 or info_user[0][
-                "Matter"] > 0:
+            if info_user[0]["Iron"] > 0 or info_user[0]["Gold"] > 0 or \
+                    info_user[0]["Diamond"] > 0 or info_user[0]["Matter"] > 0:
                 temp_text += f'\n🔦 Ресурсы:\n'
                 if info_user[0]["Iron"] > 0:
                     temp_text += f'⠀🥈 Железо: {general.change_number(info_user[0]["Iron"])} ед.\n'
@@ -4367,7 +4400,8 @@ async def get_handler(message: Message, info: UsersUserXtrCounters, vk_id: Optio
             await message.answer(f"@id{message.from_id} ({user[0]['Name']}), такого игрока не существует")
         else:
             await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
-                                 f"Игровой ID у @id{info_user[0]['VK_ID']} ({info_user[0]['Name']}) - {info_user[0]['ID']}")
+                                 f"Игровой ID у @id{info_user[0]['VK_ID']} ({info_user[0]['Name']}) - "
+                                 f"{info_user[0]['ID']}")
 
 
 @bot.on.message(text=["ban"])
@@ -4399,7 +4433,8 @@ async def getbaninfo_handler(message: Message, info: UsersUserXtrCounters,
                                          f'Вы выдали игроку @id{info_user[0]["VK_ID"]} ({info_user[0]["Name"]}) '
                                          f'игровой бан на {time.strftime("%H ч. %M мин.", time.gmtime(int(ban_time) * 60)) if int(ban_time) >= 60 else time.strftime("%M мин.", time.gmtime(int(ban_time) * 60))}')
                     await message.answer(f'@id{info_user[0]["VK_ID"]} ({info_user[0]["Name"]}), '
-                                         f'администратор @id{message.from_id} ({user[0]["Name"]}) выдал Вам игровой бан на '
+                                         f'администратор @id{message.from_id} ({user[0]["Name"]}) '
+                                         f'выдал Вам игровой бан на '
                                          f'{time.strftime("%H ч. %M мин.", time.gmtime(int(ban_time) * 60)) if int(ban_time) >= 60 else time.strftime("%M мин.", time.gmtime(int(ban_time) * 60))}',
                                          user_id=info_user[0]["VK_ID"])
             if ban_type == 'репорт':
@@ -4413,7 +4448,8 @@ async def getbaninfo_handler(message: Message, info: UsersUserXtrCounters,
                                          f'Вы выдали игроку @id{info_user[0]["VK_ID"]} ({info_user[0]["Name"]}) '
                                          f'бан репорта на {time.strftime("%H ч. %M мин.", time.gmtime(int(ban_time) * 60)) if int(ban_time) >= 60 else time.strftime("%M мин.", time.gmtime(int(ban_time) * 60))}')
                     await message.answer(f'@id{info_user[0]["VK_ID"]} ({info_user[0]["Name"]}), '
-                                         f'администратор @id{message.from_id} ({user[0]["Name"]}) выдал Вам бан репорта на '
+                                         f'администратор @id{message.from_id} ({user[0]["Name"]}) '
+                                         f'выдал Вам бан репорта на '
                                          f'{time.strftime("%H ч. %M мин.", time.gmtime(int(ban_time) * 60)) if int(ban_time) >= 60 else time.strftime("%M мин.", time.gmtime(int(ban_time) * 60))}',
                                          user_id=info_user[0]["VK_ID"])
             if ban_type == 'трейд':
@@ -4427,7 +4463,8 @@ async def getbaninfo_handler(message: Message, info: UsersUserXtrCounters,
                                          f'Вы выдали игроку @id{info_user[0]["VK_ID"]} ({info_user[0]["Name"]}) '
                                          f'бан трейда на {time.strftime("%H ч. %M мин.", time.gmtime(int(ban_time) * 60)) if int(ban_time) >= 60 else time.strftime("%M мин.", time.gmtime(int(ban_time) * 60))}')
                     await message.answer(f'@id{info_user[0]["VK_ID"]} ({info_user[0]["Name"]}), '
-                                         f'администратор @id{message.from_id} ({user[0]["Name"]}) выдал Вам бан трейда на '
+                                         f'администратор @id{message.from_id} ({user[0]["Name"]}) '
+                                         f'выдал Вам бан трейда на '
                                          f'{time.strftime("%H ч. %M мин.", time.gmtime(int(ban_time) * 60)) if int(ban_time) >= 60 else time.strftime("%M мин.", time.gmtime(int(ban_time) * 60))}',
                                          user_id=info_user[0]["VK_ID"])
             if ban_type == 'топ':
@@ -4519,22 +4556,31 @@ async def statistic_handler(message: Message, info: UsersUserXtrCounters):
         return True
     else:
         temp_text = ''
-        top_user_with_ban_top = UserAction.custom_query('SELECT ID, Name, Money FROM users WHERE BanTop>0 ORDER BY Money DESC LIMIT 1')
-        top_user = UserAction.custom_query('SELECT ID, Name, Money FROM users WHERE BanTop<1 ORDER BY Money DESC LIMIT 1')
+        top_user_with_ban_top = UserAction.custom_query(
+            'SELECT ID, Name, Money FROM users WHERE BanTop>0 ORDER BY Money DESC LIMIT 1')
+        top_user = UserAction.custom_query(
+            'SELECT ID, Name, Money FROM users WHERE BanTop<1 ORDER BY Money DESC LIMIT 1')
         top_btc_user = UserAction.custom_query('SELECT ID, Name, BTC FROM users ORDER BY BTC DESC LIMIT 1')
-        temp_text += f"😸 Всего игроков: {general.change_number(len(UserAction.custom_query('SELECT * FROM users')))}\n"
-        temp_text += f"⛔ Заблокировано: {general.change_number(len(UserAction.custom_query('SELECT * FROM users WHERE Ban>0')))}\n"
-        temp_text += f"💰 Сумма всех денег игроков: {general.change_number(int(UserAction.custom_query('SELECT SUM(Money) FROM users')[0]['SUM(Money)']))}$\n"
-        temp_text += f"💳 Сумма всех денег в банке игроков: {general.change_number(int(UserAction.custom_query('SELECT SUM(Bank_Money) FROM users')[0]['SUM(Bank_Money)']))}$\n"
-        temp_text += f"🔋 Сумма всех ферм игроков: {general.change_number(int(UserAction.custom_query('SELECT SUM(BTC_In_Farms) FROM users')[0]['SUM(BTC_In_Farms)']))}₿\n"
-        temp_text += f"👑 Сумма всего рейтинга игроков: {general.change_number(int(UserAction.custom_query('SELECT SUM(Rating) FROM users')[0]['SUM(Rating)']))}\n"
+        temp_text += f"😸 Всего игроков: " \
+                     f"{general.change_number(len(UserAction.custom_query('SELECT * FROM users')))}\n"
+        temp_text += f"⛔ Заблокировано: " \
+                     f"{general.change_number(len(UserAction.custom_query('SELECT * FROM users WHERE Ban>0')))}\n"
+        temp_text += f"💰 Сумма всех денег игроков: " \
+                     f"{general.change_number(int(UserAction.custom_query('SELECT SUM(Money) FROM users')[0]['SUM(Money)']))}$\n"
+        temp_text += f"💳 Сумма всех денег в банке игроков: " \
+                     f"{general.change_number(int(UserAction.custom_query('SELECT SUM(Bank_Money) FROM users')[0]['SUM(Bank_Money)']))}$\n"
+        temp_text += f"🔋 Сумма всех ферм игроков: " \
+                     f"{general.change_number(int(UserAction.custom_query('SELECT SUM(BTC_In_Farms) FROM users')[0]['SUM(BTC_In_Farms)']))}₿\n"
+        temp_text += f"👑 Сумма всего рейтинга игроков: " \
+                     f"{general.change_number(int(UserAction.custom_query('SELECT SUM(Rating) FROM users')[0]['SUM(Rating)']))}\n"
         if top_user_with_ban_top is True:
             temp_text += f"🔱 Самый богатый игрок[WITH BAN]: " \
                          f"{top_user_with_ban_top[0]['Name']}[{top_user_with_ban_top[0]['ID']}] - " \
                          f"{general.change_number(top_user_with_ban_top[0]['Money'])}$\n"
         temp_text += f"🔱 Самый богатый игрок[WITHOUT BAN]: {top_user[0]['Name']}[{top_user[0]['ID']}] - " \
                      f"{general.change_number(top_user[0]['Money'])}$\n"
-        temp_text += f"🔱 Самое большое кол-во биткоинов у: {top_btc_user[0]['Name']}[{top_btc_user[0]['ID']}] - {top_btc_user[0]['BTC']}₿\n"
+        temp_text += f"🔱 Самое большое кол-во биткоинов у: {top_btc_user[0]['Name']}[{top_btc_user[0]['ID']}] - " \
+                     f"{top_btc_user[0]['BTC']}₿\n"
         await message.answer(f"@id{message.from_id} ({user[0]['Name']}), общая статистика бота:\n"
                              f"{temp_text}\n"
                              f"Created by Kinder\n"
@@ -4561,7 +4607,8 @@ async def admin_report_handler(message: Message, info: UsersUserXtrCounters, act
                         continue
                     else:
                         temp_message += f'\n✉ {report["ID"]}. {report["Question"]} ' \
-                                        f'[{UserAction.get_user_by_gameid(report["AskingID"])[0]["Name"]} ({report["AskingID"]})]'
+                                        f'[{UserAction.get_user_by_gameid(report["AskingID"])[0]["Name"]} ' \
+                                        f'({report["AskingID"]})]'
                 await message.answer(
                     f'@id{message.from_id} ({user[0]["Name"]}), неотвеченные репорты: {temp_message}\n\n '
                     f'❓ Для ответа введите "репорты ответить [ID репорта] [ответ]"')
@@ -4674,14 +4721,16 @@ async def setnick_handler(message: Message, info: UsersUserXtrCounters,
 @bot.on.message(text=["выдать <user_id>"])
 @bot.on.message(text=["выдать <user_id> <type_giving>"])
 @bot.on.message(text=["выдать <user_id> <type_giving> <count>"])
-async  def admin_give_handler(message: Message, info: UsersUserXtrCounters,
-                              user_id: Optional[int] = None, type_giving: Optional[str] = None,
-                              count: Optional[int] = None):
+async def admin_give_handler(message: Message, info: UsersUserXtrCounters,
+                             user_id: Optional[int] = None, type_giving: Optional[str] = None,
+                             count: Optional[int] = None):
     user = UserAction.get_user(message.from_id)
     if user[0]['RankLevel'] < 5:
         return True
     elif user_id is None or type_giving is None or count is None:
-        return await message.answer(f"@id{message.from_id} ({user[0]['Name']}), используйте 'выдать [ID] [тип (деньги/рейтинг/биткоины/опыт)] [кол-во]'")
+        return await message.answer(
+            f"@id{message.from_id} ({user[0]['Name']}), "
+            f"используйте 'выдать [ID] [тип (деньги/рейтинг/биткоины/опыт)] [кол-во]'")
     elif not general.isint(user_id) or not general.isint(count):
         return await message.answer(f"@id{message.from_id} ({user[0]['Name']}), ID и количество доджны быть цифрами")
     giving_user = UserAction.get_user_by_gameid(int(user_id))
@@ -4691,32 +4740,41 @@ async  def admin_give_handler(message: Message, info: UsersUserXtrCounters,
         giving_user[0]["Money"] += int(count)
         UserAction.save_user(giving_user[0]["VK_ID"], giving_user)
         await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы выдали игркоку "
-                             f"@id{giving_user[0]['VK_ID']} ({giving_user[0]['Name']}) {general.change_number(int(count))}$")
+                             f"@id{giving_user[0]['VK_ID']} ({giving_user[0]['Name']}) "
+                             f"{general.change_number(int(count))}$")
         await message.answer(f"@id{giving_user[0]['VK_ID']} ({giving_user[0]['Name']}), "
-                             f"администратор выдал Вам {general.change_number(int(count))}$", user_id=giving_user[0]["VK_ID"])
+                             f"администратор выдал Вам {general.change_number(int(count))}$",
+                             user_id=giving_user[0]["VK_ID"])
     elif type_giving == "рейтинг":
         giving_user[0]["Rating"] += int(count)
         UserAction.save_user(giving_user[0]["VK_ID"], giving_user)
         await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы выдали игркоку "
-                             f"@id{giving_user[0]['VK_ID']} ({giving_user[0]['Name']}) {general.change_number(int(count))} рейтинга")
+                             f"@id{giving_user[0]['VK_ID']} ({giving_user[0]['Name']}) "
+                             f"{general.change_number(int(count))} рейтинга")
         await message.answer(f"@id{giving_user[0]['VK_ID']} ({giving_user[0]['Name']}), "
-                             f"администратор выдал Вам {general.change_number(int(count))} рейтинга", user_id=giving_user[0]["VK_ID"])
+                             f"администратор выдал Вам {general.change_number(int(count))} рейтинга",
+                             user_id=giving_user[0]["VK_ID"])
     elif type_giving == "биткоины":
         giving_user[0]["BTC"] += int(count)
         UserAction.save_user(giving_user[0]["VK_ID"], giving_user)
         await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы выдали игркоку "
-                             f"@id{giving_user[0]['VK_ID']} ({giving_user[0]['Name']}) {general.change_number(int(count))}₿")
+                             f"@id{giving_user[0]['VK_ID']} ({giving_user[0]['Name']}) "
+                             f"{general.change_number(int(count))}₿")
         await message.answer(f"@id{giving_user[0]['VK_ID']} ({giving_user[0]['Name']}), "
-                             f"администратор выдал Вам {general.change_number(int(count))}₿", user_id=giving_user[0]["VK_ID"])
+                             f"администратор выдал Вам {general.change_number(int(count))}₿",
+                             user_id=giving_user[0]["VK_ID"])
     elif type_giving == "опыт":
         giving_user[0]["EXP"] += int(count)
         UserAction.save_user(giving_user[0]["VK_ID"], giving_user)
         await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы выдали игркоку "
-                             f"@id{giving_user[0]['VK_ID']} ({giving_user[0]['Name']}) {general.change_number(int(count))} опыта")
+                             f"@id{giving_user[0]['VK_ID']} ({giving_user[0]['Name']}) "
+                             f"{general.change_number(int(count))} опыта")
         await message.answer(f"@id{giving_user[0]['VK_ID']} ({giving_user[0]['Name']}), "
-                             f"администратор выдал Вам {general.change_number(int(count))} опыта", user_id=giving_user[0]["VK_ID"])
+                             f"администратор выдал Вам {general.change_number(int(count))} опыта",
+                             user_id=giving_user[0]["VK_ID"])
     else:
-        return await message.answer(f"@id{message.from_id} ({user[0]['Name']}), проверьте правильность введнных данныых")
+        return await message.answer(
+            f"@id{message.from_id} ({user[0]['Name']}), проверьте правильность введнных данныых")
 
 
 # FD commands
@@ -4829,14 +4887,15 @@ async def admin_add_property_handler(message: Message, info: UsersUserXtrCounter
             await message.answer(f"@id{message.from_id} ({user[0]['Name']}), Вы успешно добавили новый телефон "
                                  f"{name} с ценой {general.change_number(price)}$")
     else:
-        return await message.answer(f"@id{message.from_id} ({user[0]['Name']}), проверьте правильность введенных данных!")
+        return await message.answer(
+            f"@id{message.from_id} ({user[0]['Name']}), проверьте правильность введенных данных!")
 
 
 @bot.on.message(text=["измранг"])
 @bot.on.message(text=["измранг <user_id>"])
 @bot.on.message(text=["измранг <user_id> <rank>"])
 async def admin_give_rank_handler(message: Message, info: UsersUserXtrCounters,
-                                 user_id: Optional[int] = None, rank: Optional[int] = None):
+                                  user_id: Optional[int] = None, rank: Optional[int] = None):
     user = UserAction.get_user(message.from_id)
     if user[0]["RankLevel"] < 6:
         return True
@@ -4890,7 +4949,8 @@ async def admin_give_rank_handler(message: Message, info: UsersUserXtrCounters,
         await message.answer(f"@id{give_rank_user[0]['VK_ID']} ({give_rank_user[0]['Name']}), "
                              f"администратор выдал Вам статус основателя", user_id=give_rank_user[0]["VK_ID"])
     else:
-        return await message.answer(f"@id{message.from_id} ({user[0]['Name']}), проверьте правильность введенных данных!")
+        return await message.answer(f"@id{message.from_id} ({user[0]['Name']}), "
+                                    f"проверьте правильность введенных данных!")
 
 
 # RP Commands
